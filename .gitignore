@@ -8,3 +8,4 @@ Pods/
 *.lock
 *.xcworkspace/xcshareddata/xcdebugger/
 package-lock.json
+pnpm-lock.yaml

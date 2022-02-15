@@ -13,14 +13,15 @@ public class DoricGLTFPlayerLibrary extends DoricLibrary {
     @Override
     public void load(DoricRegistry registry) {
         try {
-            InputStream is = Doric.application().getAssets().open("bundle_doricgltfplayer.js");
+            InputStream is = Doric.application().getAssets().open("bundle_doric-gltf.js");
             byte[] bytes = new byte[is.available()];
             is.read(bytes);
             String content = new String(bytes);
-            registry.registerJSBundle("doricgltfplayer", content);
+            registry.registerJSBundle("doric-gltf", content);
         } catch (IOException e) {
             e.printStackTrace();
         }
         registry.registerNativePlugin(DoricDemoPlugin.class);
+        registry.registerViewNode(DoricGLTFNode.class);
     }
 }

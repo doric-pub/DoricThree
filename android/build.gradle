@@ -34,7 +34,7 @@ android {
         main.assets.srcDirs += "../dist"
     }
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -43,4 +43,5 @@ android {
 
 dependencies {
     api "pub.doric:core:$doricSDKVersion"
+    api "pub.doric.dangle:extension:0.0.11"
 }

@@ -6,11 +6,11 @@ export default [
     input: `build/index.js`,
     output: {
       format: "cjs",
-      file: `dist/bundle_doricgltfplayer.js`,
+      file: `dist/bundle_doric-gltf.js`,
       sourcemap: true,
     },
     plugins: [resolve({ mainFields: ["jsnext"] }), commonjs(), json()],
-    external: ["reflect-metadata", "doric"],
+    external: ["reflect-metadata", "doric", "dangle"],
     onwarn: function (warning) {
       if (warning.code === "THIS_IS_UNDEFINED") {
         return;

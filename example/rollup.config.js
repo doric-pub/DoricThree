@@ -3,7 +3,6 @@ import commonjs from "@rollup/plugin-commonjs";
 import bundles from "./build/index";
 import fs from "fs";
 import path from "path";
-import buble from "@rollup/plugin-buble";
 import json from "@rollup/plugin-json";
 import image from "@rollup/plugin-image";
 
@@ -95,7 +94,7 @@ export default allFiles
         json(),
         image(),
       ],
-      external: ["reflect-metadata", "doric", "templatelibrary"],
+      external: ["reflect-metadata", "doric", "doric-gltf"],
       onwarn: function (warning) {
         if (warning.code === "THIS_IS_UNDEFINED") {
           return;

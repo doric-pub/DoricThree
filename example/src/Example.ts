@@ -11,36 +11,36 @@ import {
   AssetsResource,
   image,
 } from "doric";
-import { demoPlugin } from "doricgltfplayer";
+import { demoPlugin, webgl_animation_keyframes } from "doric-gltf";
 
 @Entry
-class Example extends Panel {
-  onShow() {
-    navbar(context).setTitle("Example");
-  }
-  build(rootView: Group) {
-    vlayout([
-      image({
-        image: new AssetsResource("logo_doric.png"),
-      }),
-      text({
-        text: "Click to call native plugin",
-        textSize: 20,
-        backgroundColor: Color.parse("#70a1ff"),
-        textColor: Color.WHITE,
-        onClick: async () => {
-          const result = await demoPlugin(this.context).call();
-          await modal(this.context).alert(result);
-        },
-        layoutConfig: layoutConfig().fit(),
-        padding: { left: 20, right: 20, top: 20, bottom: 20 },
-      }),
-    ])
-      .apply({
-        layoutConfig: layoutConfig().fit().configAlignment(Gravity.Center),
-        space: 20,
-        gravity: Gravity.Center,
-      })
-      .in(rootView);
-  }
+class Example extends webgl_animation_keyframes {
+  // onShow() {
+  //   navbar(context).setTitle("Example");
+  // }
+  // build(rootView: Group) {
+  //   vlayout([
+  //     image({
+  //       image: new AssetsResource("logo_doric.png"),
+  //     }),
+  //     text({
+  //       text: "Click to call native plugin",
+  //       textSize: 20,
+  //       backgroundColor: Color.parse("#70a1ff"),
+  //       textColor: Color.WHITE,
+  //       onClick: async () => {
+  //         const result = await demoPlugin(this.context).call();
+  //         await modal(this.context).alert(result);
+  //       },
+  //       layoutConfig: layoutConfig().fit(),
+  //       padding: { left: 20, right: 20, top: 20, bottom: 20 },
+  //     }),
+  //   ])
+  //     .apply({
+  //       layoutConfig: layoutConfig().fit().configAlignment(Gravity.Center),
+  //       space: 20,
+  //       gravity: Gravity.Center,
+  //     })
+  //     .in(rootView);
+  // }
 }

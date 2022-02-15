@@ -14,7 +14,7 @@
   "dependencies": {
     "rollup": "^2.24.0",
     "typescript": "^4.2.2",
-    "doricgltfplayer": "file:../"
+    "doric-gltf": "file:../"
   },
   "devDependencies": {
     "typescript": "^4.2.2",

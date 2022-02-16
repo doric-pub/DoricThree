@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { Resource } from "doric";
 import {
   AnimationClip,
   Bone,
@@ -61,7 +62,7 @@ import {
   VectorKeyframeTrack,
   sRGBEncoding,
 } from "three";
-import { console } from "../console";
+import { console } from "../utils";
 import { FileLoader } from "./FileLoader";
 import { TextureLoader } from "./TextureLoader";
 export type GLTF = {
@@ -126,13 +127,13 @@ export class GLTFLoader extends Loader {
   }
 
   load(
-    url,
+    resource: Resource,
     onLoad: (gltf: GLTF) => void,
     onProgress,
     onError: (error: Error) => void
   ) {
     const scope = this;
-
+    const url = resource.identifier;
     let resourcePath;
 
     if (this.resourcePath !== "") {
@@ -142,7 +143,6 @@ export class GLTFLoader extends Loader {
     } else {
       resourcePath = LoaderUtils.extractUrlBase(url);
     }
-
     // Tells the LoadingManager to track an extra item, which resolves after
     // the model is fully loaded. This means the count of items loaded will
     // be incorrect, but ensures manager.onLoad() does not fire early.
@@ -166,11 +166,12 @@ export class GLTFLoader extends Loader {
     loader.setRequestHeader(this.requestHeader);
     loader.setWithCredentials(this.withCredentials);
     loader.load(
-      url,
+      resource,
       function (data) {
         try {
           scope.parse(
             data,
+            resource.type,
             resourcePath,
             function (gltf) {
               onLoad(gltf);
@@ -224,7 +225,7 @@ export class GLTFLoader extends Loader {
     return this;
   }
 
-  parse(data, path, onLoad, onError) {
+  parse(data, resType, path, onLoad, onError) {
     let content;
     const extensions = {};
     const plugins = {};
@@ -268,6 +269,7 @@ export class GLTFLoader extends Loader {
       manager: this.manager,
       ktx2Loader: this.ktx2Loader,
       meshoptDecoder: this.meshoptDecoder,
+      resType: resType,
     });
 
     parser.fileLoader.setRequestHeader(this.requestHeader);
@@ -2337,10 +2339,12 @@ class GLTFParser {
     }
 
     const options = this.options;
-
     return new Promise(function (resolve, reject) {
       loader.load(
-        LoaderUtils.resolveURL(bufferDef.uri, options.path),
+        {
+          type: options.resType,
+          url: LoaderUtils.resolveURL(bufferDef.uri, options.path),
+        },
         resolve,
         undefined,
         function () {
@@ -2600,9 +2604,11 @@ class GLTFParser {
               resolve(texture);
             };
           }
-
           loader.load(
-            LoaderUtils.resolveURL(sourceURI, options.path),
+            {
+              url: LoaderUtils.resolveURL(sourceURI, options.path),
+              type: options.resType,
+            },
             onLoad,
             undefined,
             reject

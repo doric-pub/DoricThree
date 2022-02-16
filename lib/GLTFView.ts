@@ -5,6 +5,7 @@ import {
   loge,
   BridgeContext,
   ViewComponent,
+  Resource,
 } from "doric";
 import THREE from "three";
 import { OrbitControls } from "./controls/OrbitControls";
@@ -16,7 +17,7 @@ export class GLTFView extends GestureContainer {
   threeView: ThreeView;
   touchable = true;
   context?: BridgeContext;
-  url?: string;
+  res?: Resource;
   onLoaded?: (gltf: GLTF) => void;
   constructor() {
     super();
@@ -28,8 +29,8 @@ export class GLTFView extends GestureContainer {
       if (!!!this.context) {
         throw new Error("Please set context for GLTFView");
       }
-      if (!!!this.url) {
-        throw new Error("Please set url for GLTFView");
+      if (!!!this.res) {
+        throw new Error("Please set resource for GLTFView");
       }
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0xbfe3dd);
@@ -79,7 +80,7 @@ export class GLTFView extends GestureContainer {
       }
       try {
         loader.load(
-          this.url,
+          this.res,
           (gltf) => {
             this.onLoaded?.(gltf);
             const model = gltf.scene;

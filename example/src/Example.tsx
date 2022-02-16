@@ -19,7 +19,7 @@ class Example extends Panel {
     <VLayout parent={root} layoutConfig={layoutConfig().most()}>
       <Image image={new AssetsResource("logo_doric.png")} />
       <GLTFView
-        url="threejs/LittlestTokyo/LittlestTokyo.gltf"
+        res={new AssetsResource("threejs/LittlestTokyo/LittlestTokyo.gltf")}
         layoutConfig={layoutConfig().just()}
         width={300}
         height={300}

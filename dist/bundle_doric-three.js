@@ -878,6 +878,11 @@ const console$1 = {
         doric.log(args);
     },
 };
+class FakeResource extends doric.Resource {
+    constructor(type, identifier) {
+        super(type, identifier);
+    }
+}
 
 const loading = {};
 class FileLoader extends THREE.Loader {
@@ -885,7 +890,8 @@ class FileLoader extends THREE.Loader {
         super(manager);
         this.context = context;
     }
-    load(url, onLoad, onProgress, onError) {
+    load(res, onLoad, onProgress, onError) {
+        let url = res instanceof doric.Resource ? res.identifier : res.url;
         if (url === undefined)
             url = "";
         if (this.path !== undefined)
@@ -918,9 +924,15 @@ class FileLoader extends THREE.Loader {
             onError: onError,
         });
         // start the fetch
-        const assetsResource = new doric.AssetsResource(url);
+        let loadingResource;
+        if (res instanceof doric.Resource) {
+            loadingResource = res;
+        }
+        else {
+            loadingResource = new FakeResource(res.type, url);
+        }
         doric.resourceLoader(this.context)
-            .load(assetsResource)
+            .load(loadingResource)
             .then((data) => {
             // Add to cache only on HTTP success, so that we do not cache
             // error response bodies as proper responses to requests.
@@ -974,9 +986,10 @@ class TextureLoader extends THREE.Loader {
         super(manager);
         this.context = context;
     }
-    load(url, onLoad, onProgress, onError) {
+    load(res, onLoad, onProgress, onError) {
         let texture = new THREE__default["default"].DataTexture();
         texture.format = THREE__default["default"].RGBAFormat;
+        const url = res.url;
         let link;
         if (this.path !== "" && this.path !== undefined) {
             link = this.path + url;
@@ -984,7 +997,7 @@ class TextureLoader extends THREE.Loader {
         else {
             link = url;
         }
-        const assetsResource = new doric.AssetsResource(link);
+        const assetsResource = new FakeResource(res.type, link);
         const context = this.context;
         (function () {
             return __awaiter(this, void 0, void 0, function* () {
@@ -1005,7 +1018,6 @@ class TextureLoader extends THREE.Loader {
     }
 }
 
-// @ts-nocheck
 class GLTFLoader extends THREE.Loader {
     constructor(doricContext, manager) {
         super(manager);
@@ -1045,8 +1057,9 @@ class GLTFLoader extends THREE.Loader {
             return new GLTFMeshoptCompression(parser);
         });
     }
-    load(url, onLoad, onProgress, onError) {
+    load(resource, onLoad, onProgress, onError) {
         const scope = this;
+        const url = resource.identifier;
         let resourcePath;
         if (this.resourcePath !== "") {
             resourcePath = this.resourcePath;
@@ -1076,9 +1089,9 @@ class GLTFLoader extends THREE.Loader {
         loader.setResponseType("arraybuffer");
         loader.setRequestHeader(this.requestHeader);
         loader.setWithCredentials(this.withCredentials);
-        loader.load(url, function (data) {
+        loader.load(resource, function (data) {
             try {
-                scope.parse(data, resourcePath, function (gltf) {
+                scope.parse(data, resource.type, resourcePath, function (gltf) {
                     onLoad(gltf);
                     scope.manager.itemEnd(url);
                 }, _onError);
@@ -1115,7 +1128,7 @@ class GLTFLoader extends THREE.Loader {
         }
         return this;
     }
-    parse(data, path, onLoad, onError) {
+    parse(data, resType, path, onLoad, onError) {
         let content;
         const extensions = {};
         const plugins = {};
@@ -1152,6 +1165,7 @@ class GLTFLoader extends THREE.Loader {
             manager: this.manager,
             ktx2Loader: this.ktx2Loader,
             meshoptDecoder: this.meshoptDecoder,
+            resType: resType,
         });
         parser.fileLoader.setRequestHeader(this.requestHeader);
         for (let i = 0; i < this.pluginCallbacks.length; i++) {
@@ -2684,7 +2698,10 @@ class GLTFParser {
         }
         const options = this.options;
         return new Promise(function (resolve, reject) {
-            loader.load(THREE.LoaderUtils.resolveURL(bufferDef.uri, options.path), resolve, undefined, function () {
+            loader.load({
+                type: options.resType,
+                url: THREE.LoaderUtils.resolveURL(bufferDef.uri, options.path),
+            }, resolve, undefined, function () {
                 reject(new Error('THREE.GLTFLoader: Failed to load buffer "' + bufferDef.uri + '".'));
             });
         });
@@ -2857,7 +2874,10 @@ class GLTFParser {
                         resolve(texture);
                     };
                 }
-                loader.load(THREE.LoaderUtils.resolveURL(sourceURI, options.path), onLoad, undefined, reject);
+                loader.load({
+                    url: THREE.LoaderUtils.resolveURL(sourceURI, options.path),
+                    type: options.resType,
+                }, onLoad, undefined, reject);
             });
         })
             .then(function (texture) {
@@ -3820,8 +3840,8 @@ exports.GLTFView = class GLTFView extends doric.GestureContainer {
             if (!!!this.context) {
                 throw new Error("Please set context for GLTFView");
             }
-            if (!!!this.url) {
-                throw new Error("Please set url for GLTFView");
+            if (!!!this.res) {
+                throw new Error("Please set resource for GLTFView");
             }
             const scene = new THREE__default["default"].Scene();
             scene.background = new THREE__default["default"].Color(0xbfe3dd);
@@ -3858,7 +3878,7 @@ exports.GLTFView = class GLTFView extends doric.GestureContainer {
                 renderer.render(scene, camera);
             }
             try {
-                loader.load(this.url, (gltf) => {
+                loader.load(this.res, (gltf) => {
                     var _a;
                     (_a = this.onLoaded) === null || _a === void 0 ? void 0 : _a.call(this, gltf);
                     const model = gltf.scene;
@@ -3869,7 +3889,7 @@ exports.GLTFView = class GLTFView extends doric.GestureContainer {
                     mixer.clipAction(gltf.animations[0]).play();
                     animate();
                 }, undefined, function (e) {
-                    doric.loge(e);
+                    doric.loge("error", e, new Error().stack);
                 });
             }
             catch (error) {

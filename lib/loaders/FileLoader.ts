@@ -1,5 +1,6 @@
-import { AssetsResource, BridgeContext, resourceLoader } from "doric";
+import { AssetsResource, BridgeContext, Resource, resourceLoader } from "doric";
 import { Cache, Loader, LoadingManager } from "three";
+import { FakeResource } from "../utils";
 
 const loading: Record<
   string,
@@ -17,7 +18,13 @@ export class FileLoader extends Loader {
     this.context = context;
   }
 
-  load(url: string, onLoad: Function, onProgress: Function, onError: Function) {
+  load(
+    res: { url: string; type: string } | Resource,
+    onLoad: Function,
+    onProgress: Function,
+    onError: Function
+  ) {
+    let url = res instanceof Resource ? res.identifier : res.url;
     if (url === undefined) url = "";
 
     if (this.path !== undefined) url = this.path + url;
@@ -60,9 +67,14 @@ export class FileLoader extends Loader {
     });
 
     // start the fetch
-    const assetsResource = new AssetsResource(url);
+    let loadingResource: Resource;
+    if (res instanceof Resource) {
+      loadingResource = res;
+    } else {
+      loadingResource = new FakeResource(res.type, url);
+    }
     resourceLoader(this.context)
-      .load(assetsResource)
+      .load(loadingResource)
       .then((data) => {
         // Add to cache only on HTTP success, so that we do not cache
         // error response bodies as proper responses to requests.

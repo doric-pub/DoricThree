@@ -1,10 +1,10 @@
 Pod::Spec.new do |s|
-    s.name             = 'DoricGLTFPlayer'
+    s.name             = 'DoricThree'
     s.version          = '0.1.0'
-    s.summary          = 'Doric extension library to display glTF format file'
+    s.summary          = 'Doric extension library to use three.js in doric'
   
     s.description      = <<-DESC
-This provides a extension library to support glTF format files in doric.
+This is a extension library that allows developers use three.js library in doric.
                              DESC
 
     s.homepage         = 'https://github.com/doric-pub/DoricGLTFPlayer'
@@ -18,4 +18,5 @@ This provides a extension library to support glTF format files in doric.
     s.resource     =  "dist/**/*"
     s.public_header_files = 'iOS/Classes/**/*.h'
     s.dependency 'DoricCore'
+    s.dependency 'Dangle'
 end

@@ -4,7 +4,7 @@ import android.app.Application;
 
 import pub.doric.Doric;
 import pub.doric.library.DangleLibrary;
-import pub.doric.library.DoricGLTFPlayerLibrary;
+import pub.doric.library.three.DoricThreeLibrary;
 
 public class MainApplication extends Application {
     @Override
@@ -12,6 +12,6 @@ public class MainApplication extends Application {
         super.onCreate();
         Doric.init(this);
         Doric.registerLibrary(new DangleLibrary());
-        Doric.registerLibrary(new DoricGLTFPlayerLibrary());
+        Doric.registerLibrary(new DoricThreeLibrary());
     }
 }

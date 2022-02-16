@@ -1,7 +1,7 @@
 #import "SceneDelegate.h"
 #import <DoricCore/Doric.h>
-#import "DoricGLTFPlayerLibrary.h"
-
+#import <DoricThree/DoricThreeLibrary.h>
+#import <Dangle/DangleLibrary.h>
 #if DEBUG
 
 #import <DoricDevkit/DoricDev.h>
@@ -13,7 +13,8 @@
 
 @implementation SceneDelegate
 - (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
-    [Doric registerLibrary:[DoricGLTFPlayerLibrary new]];
+    [Doric registerLibrary:[DangleLibrary new]];
+    [Doric registerLibrary:[DoricThreeLibrary new]];
     UIWindowScene *windowScene = (UIWindowScene *) scene;
     NSString *bundleName = @"Example";
     DoricViewController *doricViewController = [[DoricViewController alloc] initWithSource:[NSString stringWithFormat:@"assets://src/%@.js", bundleName]

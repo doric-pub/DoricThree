@@ -6,7 +6,7 @@ export default [
     input: `build/index.js`,
     output: {
       format: "cjs",
-      file: `dist/bundle_doric-gltf.js`,
+      file: `dist/bundle_doric-three.js`,
       sourcemap: true,
     },
     plugins: [resolve({ mainFields: ["jsnext"] }), commonjs(), json()],

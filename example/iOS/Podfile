@@ -22,5 +22,7 @@ target 'Example' do
 
   pod 'PINCache'
   
-  pod 'DoricGLTFPlayer',           :path => '../../'
+  pod 'DoricThree',           :path => '../../'
+  
+  pod 'Dangle'
 end

@@ -5,14 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var doric = require('doric');
 var dangle = require('dangle');
 
-function demoPlugin(context) {
-    return {
-        call: () => {
-            return context.callNative("demoPlugin", "call");
-        },
-    };
-}
-
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function createCommonjsModule(fn, basedir, module) {
@@ -40661,6 +40653,4 @@ exports.GLTFView = __decorate([
     doric.ViewComponent,
     __metadata("design:paramtypes", [])
 ], exports.GLTFView);
-
-exports.demoPlugin = demoPlugin;
-//# sourceMappingURL=bundle_doric-gltf.js.map
+//# sourceMappingURL=bundle_doric-three.js.map

@@ -8,7 +8,7 @@ import {
   VLayout,
   jsx,
 } from "doric";
-import { GLTFView } from "doric-gltf";
+import { GLTFView } from "doric-three";
 
 @Entry
 class Example extends Panel {

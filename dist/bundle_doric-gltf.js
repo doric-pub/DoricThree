@@ -37764,24 +37764,22 @@ class TextureLoader extends THREE.Loader {
             link = url;
         }
         const assetsResource = new doric.AssetsResource(link);
-        doric.resourceLoader(this.context)
-            .load(assetsResource)
-            .then((arrayBuffer) => __awaiter(this, void 0, void 0, function* () {
-            const imageInfo = yield doric.imageDecoder(this.context).getImageInfo(assetsResource);
-            const imagePixels = yield doric.imageDecoder(this.context).decodeToPixels(assetsResource);
-            texture.image = {
-                data: new Uint8ClampedArray(imagePixels),
-                width: imageInfo.width,
-                height: imageInfo.height,
-            };
-            texture.needsUpdate = true;
-            if (onLoad !== undefined) {
-                onLoad(texture);
-            }
-        }))
-            .catch((reason) => {
-            onError();
-        });
+        const context = this.context;
+        (function () {
+            return __awaiter(this, void 0, void 0, function* () {
+                const imageInfo = yield doric.imageDecoder(context).getImageInfo(assetsResource);
+                const imagePixels = yield doric.imageDecoder(context).decodeToPixels(assetsResource);
+                texture.image = {
+                    data: new Uint8ClampedArray(imagePixels),
+                    width: imageInfo.width,
+                    height: imageInfo.height,
+                };
+                texture.needsUpdate = true;
+                if (onLoad !== undefined) {
+                    onLoad(texture);
+                }
+            });
+        })();
         return texture;
     }
 }

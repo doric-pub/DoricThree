@@ -1,12 +1,7 @@
-import {
-  AssetsResource,
-  BridgeContext,
-  imageDecoder,
-  resourceLoader,
-} from "doric";
+import { AssetsResource, BridgeContext, imageDecoder } from "doric";
 import THREE, { Loader, LoadingManager } from "three";
 
-class TextureLoader extends Loader {
+export class TextureLoader extends Loader {
   context: BridgeContext;
   constructor(context: BridgeContext, manager?: LoadingManager) {
     super(manager);
@@ -25,34 +20,27 @@ class TextureLoader extends Loader {
     }
 
     const assetsResource = new AssetsResource(link);
-    resourceLoader(this.context)
-      .load(assetsResource)
-      .then(async (arrayBuffer) => {
-        const imageInfo = await imageDecoder(this.context).getImageInfo(
-          assetsResource
-        );
-        const imagePixels = await imageDecoder(this.context).decodeToPixels(
-          assetsResource
-        );
+    const context = this.context;
+    (async function () {
+      const imageInfo = await imageDecoder(context).getImageInfo(
+        assetsResource
+      );
+      const imagePixels = await imageDecoder(context).decodeToPixels(
+        assetsResource
+      );
 
-        texture.image = {
-          data: new Uint8ClampedArray(imagePixels),
-          width: imageInfo.width,
-          height: imageInfo.height,
-        };
+      texture.image = {
+        data: new Uint8ClampedArray(imagePixels),
+        width: imageInfo.width,
+        height: imageInfo.height,
+      };
 
-        texture.needsUpdate = true;
+      texture.needsUpdate = true;
 
-        if (onLoad !== undefined) {
-          onLoad(texture);
-        }
-      })
-      .catch((reason) => {
-        onError();
-      });
-
+      if (onLoad !== undefined) {
+        onLoad(texture);
+      }
+    })();
     return texture;
   }
 }
-
-export { TextureLoader };

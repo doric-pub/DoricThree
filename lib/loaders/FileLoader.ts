@@ -10,7 +10,7 @@ const loading: Record<
   }[]
 > = {};
 
-class FileLoader extends Loader {
+export class FileLoader extends Loader {
   context: BridgeContext;
   constructor(context: BridgeContext, manager?: LoadingManager) {
     super(manager);
@@ -108,5 +108,3 @@ class FileLoader extends Loader {
     return this;
   }
 }
-
-export { FileLoader };

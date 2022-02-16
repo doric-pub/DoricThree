@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Resource } from "doric";
+import { Resource, BridgeContext } from "doric";
 import {
   AnimationClip,
   Bone,
@@ -74,6 +74,23 @@ export type GLTF = {
   parser: GLTFParser;
   userData: {};
 };
+
+export async function loadGLTF(context: BridgeContext, resource: Resource) {
+  const loader = new GLTFLoader(context);
+  return new Promise<GLTF>((resolve, reject) => {
+    loader.load(
+      resource,
+      (gltf) => {
+        resolve(gltf);
+      },
+      undefined,
+      (e) => {
+        reject(e);
+      }
+    );
+  });
+}
+
 export class GLTFLoader extends Loader {
   doricContext: BridgeContext;
   constructor(doricContext: BridgeContext, manager?: LoadingManager) {

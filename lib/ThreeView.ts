@@ -8,7 +8,7 @@ export class ThreeView extends DangleView {
   onInited?: (renderer: THREE.WebGLRenderer) => void;
   touchable = true;
   gl?: DangleWebGLRenderingContext;
-
+  gestureRef?: Ref<GestureContainer>;
   isDirty() {
     this.gl?.endFrame();
     return super.isDirty();
@@ -21,6 +21,9 @@ export class ThreeView extends DangleView {
   constructor() {
     super();
     this.onReady = (gl: DangleWebGLRenderingContext) => {
+      if (this.gestureRef && this.gestureRef.current) {
+        this.gesture = this.gestureRef.current;
+      }
       this.gl = gl;
       const width = gl.drawingBufferWidth;
       const height = gl.drawingBufferHeight;
@@ -93,8 +96,5 @@ export class ThreeView extends DangleView {
         };
       }
     };
-  }
-  set gestureRef(ref: Ref<GestureContainer>) {
-    this.gesture = ref.current;
   }
 }

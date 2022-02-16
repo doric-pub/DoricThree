@@ -25,6 +25,9 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
         this.touchable = true;
         this.onReady = (gl) => {
             var _a;
+            if (this.gestureRef && this.gestureRef.current) {
+                this.gesture = this.gestureRef.current;
+            }
             this.gl = gl;
             const width = gl.drawingBufferWidth;
             const height = gl.drawingBufferHeight;
@@ -102,9 +105,6 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
                 };
             }
         };
-    }
-    set gestureRef(ref) {
-        this.gesture = ref.current;
     }
 };
 exports.ThreeView = __decorate$1([
@@ -866,6 +866,23 @@ class OrbitControls extends THREE.EventDispatcher {
         this.update();
     }
 }
+// This set of controls performs orbiting, dollying (zooming), and panning.
+// Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
+// This is very similar to OrbitControls, another set of touch behavior
+//
+//    Orbit - right mouse, or left mouse + ctrl/meta/shiftKey / touch: two-finger rotate
+//    Zoom - middle mouse, or mousewheel / touch: two-finger spread or squish
+//    Pan - left mouse, or arrow keys / touch: one-finger move
+class MapControls extends OrbitControls {
+    constructor(object, domElement) {
+        super(object, domElement);
+        this.screenSpacePanning = false; // pan orthogonal to world-space direction camera.up
+        this.mouseButtons.LEFT = THREE.MOUSE.PAN;
+        this.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
+        this.touches.ONE = THREE.TOUCH.PAN;
+        this.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
+    }
+}
 
 const console$1 = {
     error: (...args) => {
@@ -972,7 +989,7 @@ class FileLoader extends THREE.Loader {
     }
 }
 
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1000,7 +1017,7 @@ class TextureLoader extends THREE.Loader {
         const assetsResource = new FakeResource(res.type, link);
         const context = this.context;
         (function () {
-            return __awaiter(this, void 0, void 0, function* () {
+            return __awaiter$1(this, void 0, void 0, function* () {
                 const imageInfo = yield doric.imageDecoder(context).getImageInfo(assetsResource);
                 const imagePixels = yield doric.imageDecoder(context).decodeToPixels(assetsResource);
                 texture.image = {
@@ -1018,6 +1035,27 @@ class TextureLoader extends THREE.Loader {
     }
 }
 
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+function loadGLTF(context, resource) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const loader = new GLTFLoader(context);
+        return new Promise((resolve, reject) => {
+            loader.load(resource, (gltf) => {
+                resolve(gltf);
+            }, undefined, (e) => {
+                reject(e);
+            });
+        });
+    });
+}
 class GLTFLoader extends THREE.Loader {
     constructor(doricContext, manager) {
         super(manager);
@@ -3889,7 +3927,7 @@ exports.GLTFView = class GLTFView extends doric.GestureContainer {
                     mixer.clipAction(gltf.animations[0]).play();
                     animate();
                 }, undefined, function (e) {
-                    doric.loge("error", e, new Error().stack);
+                    doric.loge(e);
                 });
             }
             catch (error) {
@@ -3902,4 +3940,9 @@ exports.GLTFView = __decorate([
     doric.ViewComponent,
     __metadata("design:paramtypes", [])
 ], exports.GLTFView);
+
+exports.GLTFLoader = GLTFLoader;
+exports.MapControls = MapControls;
+exports.OrbitControls = OrbitControls;
+exports.loadGLTF = loadGLTF;
 //# sourceMappingURL=bundle_doric-three.js.map

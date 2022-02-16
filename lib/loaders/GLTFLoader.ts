@@ -64,10 +64,18 @@ import {
 import { console } from "../console";
 import { FileLoader } from "./FileLoader";
 import { TextureLoader } from "./TextureLoader";
-
-class GLTFLoader extends Loader {
+export type GLTF = {
+  scene: THREE.Scene;
+  scenes: THREE.Scene[];
+  animations: THREE.AnimationClip[];
+  cameras: THREE.Camera[];
+  asset?: { version: [number] };
+  parser: GLTFParser;
+  userData: {};
+};
+export class GLTFLoader extends Loader {
   doricContext: BridgeContext;
-  constructor(doricContext: BridgeContext, manager) {
+  constructor(doricContext: BridgeContext, manager?: LoadingManager) {
     super(manager);
     this.doricContext = doricContext;
     this.dracoLoader = null;
@@ -117,7 +125,12 @@ class GLTFLoader extends Loader {
     });
   }
 
-  load(url, onLoad, onProgress, onError) {
+  load(
+    url,
+    onLoad: (gltf: GLTF) => void,
+    onProgress,
+    onError: (error: Error) => void
+  ) {
     const scope = this;
 
     let resourcePath;
@@ -1972,7 +1985,6 @@ function getNormalizedComponentScale(constructor) {
 }
 
 /* GLTF PARSER */
-
 class GLTFParser {
   doricContext: BridgeContext;
   constructor(doricContext, json = {}, options = {}) {
@@ -3907,5 +3919,3 @@ function toTrianglesDrawMode(geometry, drawMode) {
 
   return newGeometry;
 }
-
-export { GLTFLoader };

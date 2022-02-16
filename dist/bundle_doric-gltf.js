@@ -36789,6 +36789,108 @@ var three = createCommonjsModule(function (module, exports) {
 
 var THREE = three;
 
+var __decorate$1 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata$1 = (undefined && undefined.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+exports.ThreeView = class ThreeView extends dangle.DangleView {
+    constructor() {
+        super();
+        this.touchable = true;
+        this.onReady = (gl) => {
+            var _a;
+            this.gl = gl;
+            const width = gl.drawingBufferWidth;
+            const height = gl.drawingBufferHeight;
+            const inputCanvas = {
+                width: width,
+                height: height,
+                style: {},
+                addEventListener: this.addEventListener,
+                removeEventListener: (() => { }),
+                setPointerCapture: (() => { }),
+                releasePointerCapture: (() => { }),
+                clientWidth: width,
+                clientHeight: height,
+                getContext: (() => {
+                    return gl;
+                }),
+            };
+            let window = {
+                innerWidth: width,
+                innerHeight: height,
+                devicePixelRatio: 1,
+                addEventListener: (() => { }),
+            };
+            const renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                canvas: inputCanvas,
+            });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            (_a = this.onInited) === null || _a === void 0 ? void 0 : _a.call(this, renderer);
+        };
+    }
+    isDirty() {
+        var _a;
+        (_a = this.gl) === null || _a === void 0 ? void 0 : _a.endFrame();
+        return super.isDirty();
+    }
+    set gesture(v) {
+        this.addEventListener = (name, fn) => {
+            if (name == "pointerdown") {
+                v.onTouchDown = ({ x, y }) => {
+                    fn({
+                        pageX: x * Environment.screenScale,
+                        pageY: y * Environment.screenScale,
+                        pointerType: "touch",
+                    });
+                };
+            }
+            else if (name == "pointerup") {
+                v.onTouchUp = ({ x, y }) => {
+                    fn({
+                        pageX: x * Environment.screenScale,
+                        pageY: y * Environment.screenScale,
+                        pointerType: "touch",
+                    });
+                };
+            }
+            else if (name == "pointermove") {
+                v.onTouchMove = ({ x, y }) => {
+                    fn({
+                        pageX: x * Environment.screenScale,
+                        pageY: y * Environment.screenScale,
+                        pointerType: "touch",
+                    });
+                };
+            }
+            else if (name == "pointercancel") {
+                v.onTouchCancel = ({ x, y }) => {
+                    fn({
+                        pageX: x * Environment.screenScale,
+                        pageY: y * Environment.screenScale,
+                        pointerType: "touch",
+                    });
+                };
+            }
+        };
+    }
+    set gestureRef(ref) {
+        this.gesture = ref.current;
+    }
+};
+exports.ThreeView = __decorate$1([
+    doric.ViewComponent,
+    __metadata$1("design:paramtypes", [])
+], exports.ThreeView);
+
 // @ts-nocheck
 // This set of controls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
@@ -37544,6 +37646,18 @@ class OrbitControls extends THREE.EventDispatcher {
     }
 }
 
+const console$1 = {
+    error: (...args) => {
+        doric.loge(args);
+    },
+    warn: (...args) => {
+        doric.logw(args);
+    },
+    log: (...args) => {
+        doric.log(args);
+    },
+};
+
 const loading = {};
 class FileLoader extends THREE.Loader {
     constructor(context, manager) {
@@ -37729,12 +37843,11 @@ class GLTFLoader extends THREE.Loader {
         // be incorrect, but ensures manager.onLoad() does not fire early.
         this.manager.itemStart(url);
         const _onError = function (e) {
-            doric.loge("onError", e);
             if (onError) {
                 onError(e);
             }
             else {
-                console.error(e);
+                console$1.error(e);
             }
             scope.manager.itemError(url);
             scope.manager.itemEnd(url);
@@ -37855,7 +37968,7 @@ class GLTFLoader extends THREE.Loader {
                     default:
                         if (extensionsRequired.indexOf(extensionName) >= 0 &&
                             plugins[extensionName] === undefined) {
-                            console.warn('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                            console$1.warn('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
                         }
                 }
             }
@@ -38507,7 +38620,7 @@ class GLTFTextureTransformExtension {
     }
     extendTexture(texture, transform) {
         if (transform.texCoord !== undefined) {
-            console.warn('THREE.GLTFLoader: Custom UV sets in "' +
+            console$1.warn('THREE.GLTFLoader: Custom UV sets in "' +
                 this.name +
                 '" extension not yet supported.');
         }
@@ -38954,7 +39067,7 @@ function assignExtrasToUserData(object, gltfDef) {
             Object.assign(object.userData, gltfDef.extras);
         }
         else {
-            console.warn("THREE.GLTFLoader: Ignoring primitive type .extras, " + gltfDef.extras);
+            console$1.warn("THREE.GLTFLoader: Ignoring primitive type .extras, " + gltfDef.extras);
         }
     }
 }
@@ -39032,7 +39145,7 @@ function updateMorphTargets(mesh, meshDef) {
             }
         }
         else {
-            console.warn("THREE.GLTFLoader: Invalid extras.targetNames length. Ignoring names.");
+            console$1.warn("THREE.GLTFLoader: Invalid extras.targetNames length. Ignoring names.");
         }
     }
 }
@@ -39542,7 +39655,7 @@ class GLTFParser {
             return texture;
         })
             .catch(function () {
-            console.error("THREE.GLTFLoader: Couldn't load texture", sourceURI);
+            console$1.error("THREE.GLTFLoader: Couldn't load texture", sourceURI);
             return null;
         });
         this.textureCache[cacheKey] = promise;
@@ -39563,7 +39676,7 @@ class GLTFParser {
             if (mapDef.texCoord !== undefined &&
                 mapDef.texCoord != 0 &&
                 !(mapName === "aoMap" && mapDef.texCoord == 1)) {
-                console.warn("THREE.GLTFLoader: Custom UV set " +
+                console$1.warn("THREE.GLTFLoader: Custom UV set " +
                     mapDef.texCoord +
                     " for texture " +
                     mapName +
@@ -39943,7 +40056,7 @@ class GLTFParser {
         const cameraDef = this.json.cameras[cameraIndex];
         const params = cameraDef[cameraDef.type];
         if (!params) {
-            console.warn("THREE.GLTFLoader: Missing camera parameters.");
+            console$1.warn("THREE.GLTFLoader: Missing camera parameters.");
             return;
         }
         if (cameraDef.type === "perspective") {
@@ -40279,7 +40392,7 @@ function buildNodeHierarchy(nodeId, parentObject, json, parser) {
                         boneInverses.push(mat);
                     }
                     else {
-                        console.warn('THREE.GLTFLoader: Joint "%s" could not be found.', skinEntry.joints[j]);
+                        console$1.warn('THREE.GLTFLoader: Joint "%s" could not be found.', skinEntry.joints[j]);
                     }
                 }
                 mesh.bind(new THREE.Skeleton(bones, boneInverses), mesh.matrixWorld);
@@ -40323,7 +40436,7 @@ function computeBounds(geometry, primitiveDef, parser) {
             }
         }
         else {
-            console.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
+            console$1.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
             return;
         }
     }
@@ -40357,7 +40470,7 @@ function computeBounds(geometry, primitiveDef, parser) {
                     maxDisplacement.max(vector);
                 }
                 else {
-                    console.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
+                    console$1.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
                 }
             }
         }
@@ -40428,7 +40541,7 @@ function toTrianglesDrawMode(geometry, drawMode) {
             index = geometry.getIndex();
         }
         else {
-            console.error("THREE.GLTFLoader.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.");
+            console$1.error("THREE.GLTFLoader.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.");
             return geometry;
         }
     }
@@ -40459,7 +40572,7 @@ function toTrianglesDrawMode(geometry, drawMode) {
         }
     }
     if (newIndices.length / 3 !== numberOfTriangles) {
-        console.error("THREE.GLTFLoader.toTrianglesDrawMode(): Unable to generate correct amount of triangles.");
+        console$1.error("THREE.GLTFLoader.toTrianglesDrawMode(): Unable to generate correct amount of triangles.");
     }
     // build final geometry
     const newGeometry = geometry.clone();
@@ -40467,164 +40580,89 @@ function toTrianglesDrawMode(geometry, drawMode) {
     return newGeometry;
 }
 
-class webgl_animation_keyframes extends doric.Panel {
-    onShow() {
-        doric.navbar(this.context).setTitle("webgl_animation_keyframes");
-    }
-    build(rootView) {
-        doric.vlayout([
-            (this.gestureView = doric.gestureContainer([], {
-                layoutConfig: doric.layoutConfig().just(),
-                width: 300,
-                height: 300,
-                backgroundColor: doric.Color.BLACK,
-            })),
-        ])
-            .apply({
-            layoutConfig: doric.layoutConfig().fit().configAlignment(doric.Gravity.Center),
-            space: 20,
-            gravity: doric.Gravity.Center,
-        })
-            .in(rootView);
-        let self = this;
-        this.gestureView.addChild(dangle.dangleView({
-            onReady: (gl) => {
-                const width = gl.drawingBufferWidth;
-                const height = gl.drawingBufferHeight;
-                const inputCanvas = {
-                    width: width,
-                    height: height,
-                    style: {},
-                    addEventListener: ((name, fn) => {
-                        if (name == "pointerdown") {
-                            self.gestureView.onTouchDown = ({ x, y }) => {
-                                fn({
-                                    pageX: x * Environment.screenScale,
-                                    pageY: y * Environment.screenScale,
-                                    pointerType: "touch",
-                                });
-                            };
-                        }
-                        else if (name == "pointerup") {
-                            self.gestureView.onTouchUp = ({ x, y }) => {
-                                fn({
-                                    pageX: x * Environment.screenScale,
-                                    pageY: y * Environment.screenScale,
-                                    pointerType: "touch",
-                                });
-                            };
-                        }
-                        else if (name == "pointermove") {
-                            self.gestureView.onTouchMove = ({ x, y }) => {
-                                fn({
-                                    pageX: x * Environment.screenScale,
-                                    pageY: y * Environment.screenScale,
-                                    pointerType: "touch",
-                                });
-                            };
-                        }
-                        else if (name == "pointercancel") {
-                            self.gestureView.onTouchCancel = ({ x, y }) => {
-                                fn({
-                                    pageX: x * Environment.screenScale,
-                                    pageY: y * Environment.screenScale,
-                                    pointerType: "touch",
-                                });
-                            };
-                        }
-                    }),
-                    removeEventListener: (() => { }),
-                    setPointerCapture: (() => { }),
-                    releasePointerCapture: (() => { }),
-                    clientHeight: height,
-                    getContext: (() => {
-                        return gl;
-                    }),
-                };
-                let window = {
-                    innerWidth: width,
-                    innerHeight: height,
-                    devicePixelRatio: 1,
-                    addEventListener: (() => { }),
-                };
-                let requestAnimationFrame = dangle.vsync(this.context).requestAnimationFrame;
-                //#region code to impl
-                let mixer;
-                const clock = new THREE.Clock();
-                // const container = document.getElementById( 'container' );
-                // const stats = new Stats();
-                // container.appendChild( stats.dom );
-                const renderer = new THREE.WebGLRenderer({
-                    antialias: true,
-                    canvas: inputCanvas,
-                });
-                renderer.setPixelRatio(window.devicePixelRatio);
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.outputEncoding = THREE.sRGBEncoding;
-                // container.appendChild( renderer.domElement );
-                new THREE.PMREMGenerator(renderer);
-                const scene = new THREE.Scene();
-                scene.background = new THREE.Color(0xbfe3dd);
-                // scene.environment = pmremGenerator.fromScene( new RoomEnvironment(), 0.04 ).texture;
-                const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 100);
-                camera.position.set(5, 2, 8);
-                {
-                    const skyColor = 0xffffff;
-                    const groundColor = 0xffffff; // brownish orange
-                    const intensity = 1;
-                    const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
-                    scene.add(light);
-                }
-                {
-                    const color = 0xffffff;
-                    const intensity = 1.5;
-                    const light = new THREE.DirectionalLight(color, intensity);
-                    light.position.set(5, 10, 2);
-                    scene.add(light);
-                }
-                const controls = new OrbitControls(camera, renderer.domElement);
-                controls.target.set(0, 0.5, 0);
+var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (undefined && undefined.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+exports.GLTFView = class GLTFView extends doric.GestureContainer {
+    constructor() {
+        super();
+        this.touchable = true;
+        this.threeView = new exports.ThreeView();
+        this.threeView.layoutConfig = doric.layoutConfig().most();
+        this.addChild(this.threeView);
+        this.threeView.gesture = this;
+        this.threeView.onInited = (renderer) => {
+            if (!!!this.context) {
+                throw new Error("Please set context for GLTFView");
+            }
+            if (!!!this.url) {
+                throw new Error("Please set url for GLTFView");
+            }
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xbfe3dd);
+            const camera = new THREE.PerspectiveCamera(40, renderer.domElement.width / renderer.domElement.height, 1, 100);
+            camera.position.set(5, 2, 8);
+            {
+                const skyColor = 0xffffff;
+                const groundColor = 0xffffff; // brownish orange
+                const intensity = 1;
+                const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
+                scene.add(light);
+            }
+            {
+                const color = 0xffffff;
+                const intensity = 1.5;
+                const light = new THREE.DirectionalLight(color, intensity);
+                light.position.set(5, 10, 2);
+                scene.add(light);
+            }
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 0.5, 0);
+            controls.update();
+            controls.enablePan = false;
+            controls.enableDamping = true;
+            const loader = new GLTFLoader(this.context);
+            let mixer;
+            const clock = new THREE.Clock();
+            const requestAnimationFrame = dangle.vsync(this.context).requestAnimationFrame;
+            function animate() {
+                requestAnimationFrame(animate);
+                const delta = clock.getDelta();
+                mixer.update(delta);
                 controls.update();
-                controls.enablePan = false;
-                controls.enableDamping = true;
-                //@ts-ignore
-                const loader = new GLTFLoader(this.context);
-                try {
-                    loader.load("threejs/LittlestTokyo/LittlestTokyo.gltf", function (gltf) {
-                        doric.loge("loaded");
-                        const model = gltf.scene;
-                        model.position.set(1, 1, 0);
-                        model.scale.set(0.01, 0.01, 0.01);
-                        scene.add(model);
-                        mixer = new THREE.AnimationMixer(model);
-                        mixer.clipAction(gltf.animations[0]).play();
-                        animate();
-                    }, undefined, function (e) {
-                        console.error(e);
-                    });
-                }
-                catch (error) {
-                    doric.loge(error.stack);
-                }
-                function animate() {
-                    requestAnimationFrame(animate);
-                    const delta = clock.getDelta();
-                    mixer.update(delta);
-                    controls.update();
-                    // stats.update();
-                    renderer.render(scene, camera);
-                    gl.endFrame();
-                }
-                //#endregion
-            },
-        }).apply({
-            layoutConfig: doric.layoutConfig().just(),
-            width: 300,
-            height: 300,
-        }));
+                renderer.render(scene, camera);
+            }
+            try {
+                loader.load(this.url, (gltf) => {
+                    var _a;
+                    (_a = this.onLoaded) === null || _a === void 0 ? void 0 : _a.call(this, gltf);
+                    const model = gltf.scene;
+                    model.position.set(1, 1, 0);
+                    model.scale.set(0.01, 0.01, 0.01);
+                    scene.add(model);
+                    mixer = new THREE.AnimationMixer(model);
+                    mixer.clipAction(gltf.animations[0]).play();
+                    animate();
+                }, undefined, function (e) {
+                    doric.loge(e);
+                });
+            }
+            catch (error) {
+                doric.loge(error.stack);
+            }
+        };
     }
-}
+};
+exports.GLTFView = __decorate([
+    doric.ViewComponent,
+    __metadata("design:paramtypes", [])
+], exports.GLTFView);
 
 exports.demoPlugin = demoPlugin;
-exports.webgl_animation_keyframes = webgl_animation_keyframes;
 //# sourceMappingURL=bundle_doric-gltf.js.map

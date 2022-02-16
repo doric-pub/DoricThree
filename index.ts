@@ -1,2 +1,3 @@
 export * from "./lib/DemoPlugin";
-export * from "./lib/glTF";
+export * from "./lib/ThreeView";
+export * from "./lib/GLTFView";

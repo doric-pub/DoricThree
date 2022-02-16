@@ -33,6 +33,15 @@ public class DoricThreeLibrary extends DoricLibrary {
     @Override
     public void load(DoricRegistry registry) {
         try {
+            InputStream is = Doric.application().getAssets().open("bundle_three.js");
+            byte[] bytes = new byte[is.available()];
+            is.read(bytes);
+            String content = new String(bytes);
+            registry.registerJSBundle("three", content);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
             InputStream is = Doric.application().getAssets().open("bundle_doric-three.js");
             byte[] bytes = new byte[is.available()];
             is.read(bytes);

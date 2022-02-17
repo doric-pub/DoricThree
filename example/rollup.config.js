@@ -94,7 +94,7 @@ export default allFiles
         json(),
         image(),
       ],
-      external: ["reflect-metadata", "doric", "doric-three"],
+      external: ["reflect-metadata", "doric", "doric-three", "three"],
       onwarn: function (warning) {
         if (warning.code === "THIS_IS_UNDEFINED") {
           return;

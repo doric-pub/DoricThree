@@ -2646,8 +2646,9 @@ class GLTFParser {
         const samplers = json.samplers || {};
         const sampler = samplers[textureDef.sampler] || {};
 
-        // texture.magFilter = WEBGL_FILTERS[sampler.magFilter] || LinearFilter;
-        // texture.minFilter = WEBGL_FILTERS[sampler.minFilter] || LinearMipmapLinearFilter;
+        texture.magFilter = WEBGL_FILTERS[sampler.magFilter] || LinearFilter;
+        texture.minFilter =
+          WEBGL_FILTERS[sampler.minFilter] || LinearMipmapLinearFilter;
         texture.wrapS = WEBGL_WRAPPINGS[sampler.wrapS] || RepeatWrapping;
         texture.wrapT = WEBGL_WRAPPINGS[sampler.wrapT] || RepeatWrapping;
 

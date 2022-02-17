@@ -1,12 +1,6 @@
-import {
-  AssetsResource,
-  BridgeContext,
-  imageDecoder,
-  loge,
-  Resource,
-} from "doric";
+import { BridgeContext, imageDecoder } from "doric";
 import THREE, { Loader, LoadingManager } from "three";
-import { FakeResource as UnifiedResource } from "../utils";
+import { UnifiedResource } from "../utils";
 
 export class TextureLoader extends Loader {
   context: BridgeContext;

@@ -1,6 +1,6 @@
 import { AssetsResource, BridgeContext, Resource, resourceLoader } from "doric";
 import { Cache, Loader, LoadingManager } from "three";
-import { FakeResource } from "../utils";
+import { UnifiedResource } from "../utils";
 
 const loading: Record<
   string,
@@ -71,7 +71,7 @@ export class FileLoader extends Loader {
     if (res instanceof Resource) {
       loadingResource = res;
     } else {
-      loadingResource = new FakeResource(res.type, url);
+      loadingResource = new UnifiedResource(res.type, url);
     }
     resourceLoader(this.context)
       .load(loadingResource)

@@ -10,13 +10,13 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var THREE__default = /*#__PURE__*/_interopDefaultLegacy(THREE);
 
-var __decorate$1 = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var __metadata$1 = (undefined && undefined.__metadata) || function (k, v) {
+var __metadata = (undefined && undefined.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 exports.ThreeView = class ThreeView extends dangle.DangleView {
@@ -107,9 +107,9 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
         };
     }
 };
-exports.ThreeView = __decorate$1([
+exports.ThreeView = __decorate([
     doric.ViewComponent,
-    __metadata$1("design:paramtypes", [])
+    __metadata("design:paramtypes", [])
 ], exports.ThreeView);
 
 // @ts-nocheck
@@ -895,8 +895,14 @@ const console$1 = {
         doric.log(args);
     },
 };
-class FakeResource extends doric.Resource {
+class UnifiedResource extends doric.Resource {
     constructor(type, identifier) {
+        if (identifier.startsWith("./")) {
+            identifier = identifier.replace("./", "");
+        }
+        else if (identifier.startsWith("data:")) {
+            type = "base64";
+        }
         super(type, identifier);
     }
 }
@@ -946,7 +952,7 @@ class FileLoader extends THREE.Loader {
             loadingResource = res;
         }
         else {
-            loadingResource = new FakeResource(res.type, url);
+            loadingResource = new UnifiedResource(res.type, url);
         }
         doric.resourceLoader(this.context)
             .load(loadingResource)
@@ -1014,7 +1020,7 @@ class TextureLoader extends THREE.Loader {
         else {
             link = url;
         }
-        const assetsResource = new FakeResource(res.type, link);
+        const assetsResource = new UnifiedResource(res.type, link);
         const context = this.context;
         (function () {
             return __awaiter$1(this, void 0, void 0, function* () {
@@ -2261,6 +2267,14 @@ const WEBGL_COMPONENT_TYPES = {
     5125: Uint32Array,
     5126: Float32Array,
 };
+const WEBGL_FILTERS = {
+    9728: THREE.NearestFilter,
+    9729: THREE.LinearFilter,
+    9984: THREE.NearestMipmapNearestFilter,
+    9985: THREE.LinearMipmapNearestFilter,
+    9986: THREE.NearestMipmapLinearFilter,
+    9987: THREE.LinearMipmapLinearFilter,
+};
 const WEBGL_WRAPPINGS = {
     33071: THREE.ClampToEdgeWrapping,
     33648: THREE.MirroredRepeatWrapping,
@@ -2924,8 +2938,9 @@ class GLTFParser {
                 texture.name = textureDef.name;
             const samplers = json.samplers || {};
             const sampler = samplers[textureDef.sampler] || {};
-            // texture.magFilter = WEBGL_FILTERS[sampler.magFilter] || LinearFilter;
-            // texture.minFilter = WEBGL_FILTERS[sampler.minFilter] || LinearMipmapLinearFilter;
+            texture.magFilter = WEBGL_FILTERS[sampler.magFilter] || THREE.LinearFilter;
+            texture.minFilter =
+                WEBGL_FILTERS[sampler.minFilter] || THREE.LinearMipmapLinearFilter;
             texture.wrapS = WEBGL_WRAPPINGS[sampler.wrapS] || THREE.RepeatWrapping;
             texture.wrapT = WEBGL_WRAPPINGS[sampler.wrapT] || THREE.RepeatWrapping;
             parser.associations.set(texture, { textures: textureIndex });
@@ -3856,90 +3871,6 @@ function toTrianglesDrawMode(geometry, drawMode) {
     newGeometry.setIndex(newIndices);
     return newGeometry;
 }
-
-var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (undefined && undefined.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-exports.GLTFView = class GLTFView extends doric.GestureContainer {
-    constructor() {
-        super();
-        this.touchable = true;
-        this.threeView = new exports.ThreeView();
-        this.threeView.layoutConfig = doric.layoutConfig().most();
-        this.addChild(this.threeView);
-        this.threeView.gesture = this;
-        this.threeView.onInited = (renderer) => {
-            if (!!!this.context) {
-                throw new Error("Please set context for GLTFView");
-            }
-            if (!!!this.res) {
-                throw new Error("Please set resource for GLTFView");
-            }
-            const scene = new THREE__default["default"].Scene();
-            scene.background = new THREE__default["default"].Color(0xbfe3dd);
-            const camera = new THREE__default["default"].PerspectiveCamera(40, renderer.domElement.width / renderer.domElement.height, 1, 100);
-            camera.position.set(5, 2, 8);
-            {
-                const skyColor = 0xffffff;
-                const groundColor = 0xffffff; // brownish orange
-                const intensity = 1;
-                const light = new THREE__default["default"].HemisphereLight(skyColor, groundColor, intensity);
-                scene.add(light);
-            }
-            {
-                const color = 0xffffff;
-                const intensity = 1.5;
-                const light = new THREE__default["default"].DirectionalLight(color, intensity);
-                light.position.set(5, 10, 2);
-                scene.add(light);
-            }
-            const controls = new OrbitControls(camera, renderer.domElement);
-            controls.target.set(0, 0.5, 0);
-            controls.update();
-            controls.enablePan = false;
-            controls.enableDamping = true;
-            const loader = new GLTFLoader(this.context);
-            let mixer;
-            const clock = new THREE__default["default"].Clock();
-            const requestAnimationFrame = dangle.vsync(this.context).requestAnimationFrame;
-            function animate() {
-                requestAnimationFrame(animate);
-                const delta = clock.getDelta();
-                mixer.update(delta);
-                controls.update();
-                renderer.render(scene, camera);
-            }
-            try {
-                loader.load(this.res, (gltf) => {
-                    var _a;
-                    (_a = this.onLoaded) === null || _a === void 0 ? void 0 : _a.call(this, gltf);
-                    const model = gltf.scene;
-                    model.position.set(1, 1, 0);
-                    model.scale.set(0.01, 0.01, 0.01);
-                    scene.add(model);
-                    mixer = new THREE__default["default"].AnimationMixer(model);
-                    mixer.clipAction(gltf.animations[0]).play();
-                    animate();
-                }, undefined, function (e) {
-                    doric.loge(e);
-                });
-            }
-            catch (error) {
-                doric.loge(error.stack);
-            }
-        };
-    }
-};
-exports.GLTFView = __decorate([
-    doric.ViewComponent,
-    __metadata("design:paramtypes", [])
-], exports.GLTFView);
 
 exports.GLTFLoader = GLTFLoader;
 exports.MapControls = MapControls;

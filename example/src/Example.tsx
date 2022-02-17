@@ -4,16 +4,17 @@ import {
   layoutConfig,
   navbar,
   AssetsResource,
-  Image,
   VLayout,
   jsx,
   GestureContainer,
   createRef,
   modal,
+  Gravity,
 } from "doric";
 import THREE from "three";
 import { OrbitControls, ThreeView, loadGLTF } from "doric-three";
 import { vsync } from "dangle";
+import { loge } from "doric/lib/src/util/log";
 
 @Entry
 class Example extends Panel {
@@ -22,8 +23,11 @@ class Example extends Panel {
   }
   build(root: Group) {
     const ref = createRef<GestureContainer>();
-    <VLayout parent={root} layoutConfig={layoutConfig().most()}>
-      <Image image={new AssetsResource("logo_doric.png")} />
+    <VLayout
+      parent={root}
+      layoutConfig={layoutConfig().most()}
+      gravity={Gravity.Center}
+    >
       <GestureContainer ref={ref}>
         <ThreeView
           layoutConfig={layoutConfig().just()}
@@ -39,7 +43,7 @@ class Example extends Panel {
               1,
               100
             );
-            camera.position.set(5, 2, 8);
+            camera.position.set(5, 2, 2);
             {
               const skyColor = 0xffffff;
               const groundColor = 0xffffff; // brownish orange
@@ -67,13 +71,13 @@ class Example extends Panel {
             controls.update();
             controls.enablePan = false;
             controls.enableDamping = true;
-            const requestAnimationFrame = vsync(
-              this.context
-            ).requestAnimationFrame;
+            const requestAnimationFrame = (func: Function) => {
+              setTimeout(func, 16);
+            };
             try {
               const gltf = await loadGLTF(
                 this.context,
-                new AssetsResource("threejs/LittlestTokyo/LittlestTokyo.gltf")
+                new AssetsResource("qishi.gltf")
               );
               let mixer: THREE.AnimationMixer;
               const clock = new THREE.Clock();
@@ -86,10 +90,12 @@ class Example extends Panel {
               }
               const model = gltf.scene;
               model.position.set(1, 1, 0);
-              model.scale.set(0.01, 0.01, 0.01);
+              model.scale.set(1, 1, 1);
               scene.add(model);
               mixer = new THREE.AnimationMixer(model);
-              mixer.clipAction(gltf.animations[0]).play();
+              gltf.animations.forEach((e) => {
+                mixer.clipAction(e).play();
+              });
               animate();
             } catch (error) {
               modal(this.context).alert(`${error}`);

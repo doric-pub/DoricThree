@@ -12,8 +12,13 @@ export const console = {
   },
 };
 
-export class FakeResource extends Resource {
+export class UnifiedResource extends Resource {
   constructor(type: string, identifier: string) {
+    if (identifier.startsWith("./")) {
+      identifier = identifier.replace("./", "");
+    } else if (identifier.startsWith("data:")) {
+      type = "base64";
+    }
     super(type, identifier);
   }
 }

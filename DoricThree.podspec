@@ -12,7 +12,7 @@ This is a extension library that allows developers use three.js library in doric
     s.author           = { 'dev' => 'dev@doric.pub' }
     s.source           = { :git => 'https://github.com/doric-pub/DoricGLTFPlayer.git', :tag => s.version.to_s }
   
-    s.ios.deployment_target = '9.0'
+    s.ios.deployment_target = '10.0'
   
     s.source_files = 'iOS/Classes/**/*'
     s.resource     =  "dist/**/*"

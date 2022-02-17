@@ -14,8 +14,6 @@ import {
 } from "doric";
 import THREE from "three";
 import { OrbitControls, ThreeView, loadGLTF } from "doric-three";
-import { vsync } from "dangle";
-import { loge } from "doric/lib/src/util/log";
 
 @Entry
 class Example extends Panel {
@@ -42,7 +40,7 @@ class Example extends Panel {
           transparentBackground={true}
           onInited={async (renderer) => {
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xbfe3dd);
+            //scene.background = new THREE.Color(0xbfe3dd);
             const camera = new THREE.PerspectiveCamera(
               40,
               renderer.domElement.width / renderer.domElement.height,
@@ -83,7 +81,7 @@ class Example extends Panel {
             try {
               const gltf = await loadGLTF(
                 this.context,
-                new AssetsResource("qishi.gltf")
+                new AssetsResource("qishi.glb")
               );
               let mixer: THREE.AnimationMixer;
               const clock = new THREE.Clock();

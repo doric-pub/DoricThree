@@ -23,7 +23,7 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
     constructor() {
         super();
         this.touchable = true;
-        this.transparent = false;
+        this.transparentBackground = false;
         this.onReady = (gl) => {
             var _a;
             if (this.gestureRef && this.gestureRef.current) {
@@ -55,7 +55,7 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
             const renderer = new THREE__default["default"].WebGLRenderer({
                 antialias: true,
                 canvas: inputCanvas,
-                alpha: this.transparent,
+                alpha: this.transparentBackground,
             });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);

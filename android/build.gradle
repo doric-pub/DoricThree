@@ -43,5 +43,4 @@ android {
 
 dependencies {
     api "pub.doric:core:$doricSDKVersion"
-    api "pub.doric.dangle:extension:0.0.11"
 }

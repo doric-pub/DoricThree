@@ -18,5 +18,4 @@ This is a extension library that allows developers use three.js library in doric
     s.resource     =  "dist/**/*"
     s.public_header_files = 'iOS/Classes/**/*.h'
     s.dependency 'DoricCore'
-    s.dependency 'Dangle'
 end

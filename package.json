@@ -12,10 +12,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "dangle": "0.1.0",
-    "doric": "^0.10.2",
-    "doric-cli": "0.10.2",
-    "three": "^0.137.5"
+    "dangle": ">=0.1.1",
+    "doric": ">=0.10.3",
+    "doric-cli": ">=0.10.3",
+    "three": "0.137.5"
   },
   "devDependencies": {
     "@rollup/plugin-buble": "^0.21.3",
@@ -23,7 +23,7 @@
     "@rollup/plugin-image": "^2.0.5",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^8.4.0",
-    "@types/three": "^0.137.0",
+    "@types/three": "0.137.0",
     "rollup": "^2.24.0",
     "typescript": "^4.2.2"
   }

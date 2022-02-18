@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { Resource, BridgeContext } from "doric";
 import {
+  LoadingManager,
   AnimationClip,
   Bone,
   Box3,

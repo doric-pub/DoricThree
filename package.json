@@ -2,6 +2,7 @@
   "name": "doric-three",
   "version": "0.1.2",
   "main": "dist/bundle_doric-three.js",
+  "types": "build/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "doric build",

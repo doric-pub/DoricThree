@@ -1,0 +1,1 @@
+{"version":3,"file":"OrbitControls.d.ts","sourceRoot":"","sources":["../../../lib/controls/OrbitControls.ts"],"names":[],"mappings":"AACA,OAAO,EACN,eAAe,EAOf,MAAM,OAAO,CAAC;AAaf,cAAM,aAAc,SAAQ,eAAe;gBAE7B,MAAM,KAAA,EAAE,UAAU,KAAA;CAytC/B;AAWD,cAAM,WAAY,SAAQ,aAAa;gBAEzB,MAAM,KAAA,EAAE,UAAU,KAAA;CAc/B;AAED,OAAO,EAAE,aAAa,EAAE,WAAW,EAAE,CAAC"}

@@ -75,7 +75,7 @@ class Example extends Panel {
             controls.update();
             controls.enablePan = false;
             controls.enableDamping = true;
-            const requestAnimationFrame = (func: Function) => {
+            const requestAnimationFrame = (func: () => void) => {
               setTimeout(func, 16);
             };
             try {

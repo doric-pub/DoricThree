@@ -1,6 +1,6 @@
 {
   "name": "doric-three",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "dist/bundle_doric-three.js",
   "types": "build/index.d.ts",
   "scripts": {

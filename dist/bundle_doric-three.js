@@ -209,8 +209,67 @@ class OrbitControls extends THREE.EventDispatcher {
         this.pointers = [];
         this.pointerPositions = {};
         this.state = STATE.NONE;
-        // this method is exposed, but perhaps it would be better if we can make it private...
+        this.panLeft = (() => {
+            const v = new THREE.Vector3();
+            return (distance, objectMatrix) => {
+                v.setFromMatrixColumn(objectMatrix, 0); // get X column of objectMatrix
+                v.multiplyScalar(-distance);
+                this.panOffset.add(v);
+            };
+        })();
+        this.panUp = (() => {
+            const v = new THREE.Vector3();
+            return (distance, objectMatrix) => {
+                if (this.screenSpacePanning === true) {
+                    v.setFromMatrixColumn(objectMatrix, 1);
+                }
+                else {
+                    v.setFromMatrixColumn(objectMatrix, 0);
+                    v.crossVectors(this.object.up, v);
+                }
+                v.multiplyScalar(distance);
+                this.panOffset.add(v);
+            };
+        })();
+        // deltaX and deltaY are in pixels; right and down are positive
+        this.pan = (() => {
+            const offset = new THREE.Vector3();
+            return (deltaX, deltaY) => {
+                const element = this.domElement;
+                if (this.object instanceof THREE.PerspectiveCamera) {
+                    // perspective
+                    const position = this.object.position;
+                    offset.copy(position).sub(this.target);
+                    let targetDistance = offset.length();
+                    // half of the fov is center to top of screen
+                    targetDistance *= Math.tan(((this.object.fov / 2) * Math.PI) / 180.0);
+                    // we use only clientHeight here so aspect ratio does not distort speed
+                    this.panLeft((2 * deltaX * targetDistance) / element.clientHeight, this.object.matrix);
+                    this.panUp((2 * deltaY * targetDistance) / element.clientHeight, this.object.matrix);
+                }
+                else if (this.object instanceof THREE.OrthographicCamera) {
+                    // orthographic
+                    this.panLeft((deltaX * (this.object.right - this.object.left)) /
+                        this.object.zoom /
+                        element.clientWidth, this.object.matrix);
+                    this.panUp((deltaY * (this.object.top - this.object.bottom)) /
+                        this.object.zoom /
+                        element.clientHeight, this.object.matrix);
+                }
+                else {
+                    // camera neither orthographic nor perspective
+                    console.warn("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.");
+                    this.enablePan = false;
+                }
+            };
+        })();
+        doric.loge("Init constructor");
+        if (domElement === undefined)
+            console.warn('THREE.OrbitControls: The second parameter "domElement" is now mandatory.');
+        this.object = object;
+        this.domElement = domElement;
         this.update = (() => {
+            doric.loge("Init update");
             const offset = new THREE.Vector3();
             // so camera.up is the orbit axis
             const quat = new THREE.Quaternion().setFromUnitVectors(this.object.up, new THREE.Vector3(0, 1, 0));
@@ -229,7 +288,8 @@ class OrbitControls extends THREE.EventDispatcher {
                     this.rotateLeft(this.getAutoRotationAngle());
                 }
                 if (this.enableDamping) {
-                    this.spherical.theta += this.sphericalDelta.theta * this.dampingFactor;
+                    this.spherical.theta +=
+                        this.sphericalDelta.theta * this.dampingFactor;
                     this.spherical.phi += this.sphericalDelta.phi * this.dampingFactor;
                 }
                 else {
@@ -301,65 +361,6 @@ class OrbitControls extends THREE.EventDispatcher {
                 return false;
             };
         })();
-        this.panLeft = (() => {
-            const v = new THREE.Vector3();
-            return (distance, objectMatrix) => {
-                v.setFromMatrixColumn(objectMatrix, 0); // get X column of objectMatrix
-                v.multiplyScalar(-distance);
-                this.panOffset.add(v);
-            };
-        })();
-        this.panUp = (() => {
-            const v = new THREE.Vector3();
-            return (distance, objectMatrix) => {
-                if (this.screenSpacePanning === true) {
-                    v.setFromMatrixColumn(objectMatrix, 1);
-                }
-                else {
-                    v.setFromMatrixColumn(objectMatrix, 0);
-                    v.crossVectors(this.object.up, v);
-                }
-                v.multiplyScalar(distance);
-                this.panOffset.add(v);
-            };
-        })();
-        // deltaX and deltaY are in pixels; right and down are positive
-        this.pan = (() => {
-            const offset = new THREE.Vector3();
-            return (deltaX, deltaY) => {
-                const element = this.domElement;
-                if (this.object instanceof THREE.PerspectiveCamera) {
-                    // perspective
-                    const position = this.object.position;
-                    offset.copy(position).sub(this.target);
-                    let targetDistance = offset.length();
-                    // half of the fov is center to top of screen
-                    targetDistance *= Math.tan(((this.object.fov / 2) * Math.PI) / 180.0);
-                    // we use only clientHeight here so aspect ratio does not distort speed
-                    this.panLeft((2 * deltaX * targetDistance) / element.clientHeight, this.object.matrix);
-                    this.panUp((2 * deltaY * targetDistance) / element.clientHeight, this.object.matrix);
-                }
-                else if (this.object instanceof THREE.OrthographicCamera) {
-                    // orthographic
-                    this.panLeft((deltaX * (this.object.right - this.object.left)) /
-                        this.object.zoom /
-                        element.clientWidth, this.object.matrix);
-                    this.panUp((deltaY * (this.object.top - this.object.bottom)) /
-                        this.object.zoom /
-                        element.clientHeight, this.object.matrix);
-                }
-                else {
-                    // camera neither orthographic nor perspective
-                    console.warn("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.");
-                    this.enablePan = false;
-                }
-            };
-        })();
-        if (domElement === undefined)
-            console.warn('THREE.OrbitControls: The second parameter "domElement" is now mandatory.');
-        // if ( domElement === document ) console.error( 'THREE.OrbitControls: "document" should not be used as the target "domElement". Please use "renderer.domElement" instead.' );
-        this.object = object;
-        this.domElement = domElement;
         this.domElement.style.touchAction = "none"; // disable touch scroll
         // for reset
         this.target0 = this.target.clone();
@@ -368,10 +369,18 @@ class OrbitControls extends THREE.EventDispatcher {
         // the target DOM element for key events
         this._domElementKeyEvents = null;
         //
-        this.domElement.addEventListener("contextmenu", this.onContextMenu);
-        this.domElement.addEventListener("pointerdown", this.onPointerDown);
-        this.domElement.addEventListener("pointercancel", this.onPointerCancel);
-        this.domElement.addEventListener("wheel", this.onMouseWheel, {
+        this.domElement.addEventListener("contextmenu", (event) => {
+            this.onContextMenu(event);
+        });
+        this.domElement.addEventListener("pointerdown", (event) => {
+            this.onPointerDown(event);
+        });
+        this.domElement.addEventListener("pointercancel", (event) => {
+            this.onPointerCancel(event);
+        });
+        this.domElement.addEventListener("wheel", (event) => {
+            this.onMouseWheel(event);
+        }, {
             passive: false,
         });
         // force an update at start
@@ -390,7 +399,9 @@ class OrbitControls extends THREE.EventDispatcher {
         return this.object.position.distanceTo(this.target);
     }
     listenToKeyEvents(domElement) {
-        domElement.addEventListener("keydown", this.onKeyDown);
+        domElement.addEventListener("keydown", (event) => {
+            this.onKeyDown(event);
+        });
     }
     saveState() {
         this.target0.copy(this.target);
@@ -650,8 +661,12 @@ class OrbitControls extends THREE.EventDispatcher {
             return;
         if (this.pointers.length === 0) {
             this.domElement.setPointerCapture(event.pointerId);
-            this.domElement.addEventListener("pointermove", this.onPointerMove);
-            this.domElement.addEventListener("pointerup", this.onPointerUp);
+            this.domElement.addEventListener("pointermove", (event) => {
+                this.onPointerMove(event);
+            });
+            this.domElement.addEventListener("pointerup", (event) => {
+                this.onPointerUp(event);
+            });
         }
         //
         this.addPointer(event);

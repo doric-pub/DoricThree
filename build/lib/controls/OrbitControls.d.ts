@@ -70,6 +70,7 @@ export declare class OrbitControls extends EventDispatcher {
     pointers: PointerEvent[];
     pointerPositions: Record<number, Vector2>;
     state: STATE;
+    update: () => boolean;
     constructor(object: OrthographicCamera | PerspectiveCamera, domElement: HTMLElement);
     getPolarAngle(): number;
     getAzimuthalAngle(): number;
@@ -77,7 +78,6 @@ export declare class OrbitControls extends EventDispatcher {
     listenToKeyEvents(domElement: HTMLElement): void;
     saveState(): void;
     reset(): void;
-    update: () => boolean;
     dispose(): void;
     getAutoRotationAngle(): number;
     getZoomScale(): number;

@@ -11,6 +11,7 @@ import {
   modal,
   Gravity,
   Color,
+  loge,
 } from "doric";
 import THREE from "three";
 import { OrbitControls, ThreeView, loadGLTF } from "doric-three";
@@ -36,46 +37,50 @@ class Example extends Panel {
           gestureRef={ref}
           transparentBackground={true}
           onInited={async (renderer) => {
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(
-              40,
-              renderer.domElement.width / renderer.domElement.height,
-              1,
-              100
-            );
-            camera.position.set(5, 2, 2);
-            {
-              const skyColor = 0xffffff;
-              const groundColor = 0xffffff; // brownish orange
-              const intensity = 1;
-              const light = new THREE.HemisphereLight(
-                skyColor,
-                groundColor,
-                intensity
-              );
-              scene.add(light);
-            }
-            {
-              const color = 0xffffff;
-              const intensity = 1.5;
-              const light = new THREE.DirectionalLight(color, intensity);
-              light.position.set(5, 10, 2);
-              scene.add(light);
-            }
-
-            const controls = new OrbitControls(camera, renderer.domElement);
-            controls.target.set(0, 0.5, 0);
-            controls.update();
-            controls.enablePan = false;
-            controls.enableDamping = true;
-            const requestAnimationFrame = (func: () => void) => {
-              setTimeout(func, 16);
-            };
+            loge("Inited");
             try {
+              const scene = new THREE.Scene();
+              const camera = new THREE.PerspectiveCamera(
+                40,
+                renderer.domElement.width / renderer.domElement.height,
+                1,
+                100
+              );
+              camera.position.set(5, 2, 2);
+              {
+                const skyColor = 0xffffff;
+                const groundColor = 0xffffff; // brownish orange
+                const intensity = 1;
+                const light = new THREE.HemisphereLight(
+                  skyColor,
+                  groundColor,
+                  intensity
+                );
+                scene.add(light);
+              }
+              {
+                const color = 0xffffff;
+                const intensity = 1.5;
+                const light = new THREE.DirectionalLight(color, intensity);
+                light.position.set(5, 10, 2);
+                scene.add(light);
+              }
+
+              const controls = new OrbitControls(camera, renderer.domElement);
+              controls.target.set(0, 0.5, 0);
+              controls.update();
+              controls.enablePan = false;
+              controls.enableDamping = true;
+              const requestAnimationFrame = (func: () => void) => {
+                setTimeout(func, 16);
+              };
+              loge("start loading gltf");
+
               const gltf = await loadGLTF(
                 this.context,
                 new AssetsResource("qishi.glb")
               );
+              loge("loaded gltf");
               let mixer: THREE.AnimationMixer;
               const clock = new THREE.Clock();
               function animate() {

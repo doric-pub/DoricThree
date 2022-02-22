@@ -1,5 +1,5 @@
+import { loge } from "doric";
 import {
-  Camera,
   EventDispatcher,
   Matrix4,
   MOUSE,
@@ -137,20 +137,151 @@ export class OrbitControls extends EventDispatcher {
 
   state = STATE.NONE;
 
+  // this method is exposed, but perhaps it would be better if we can make it private...
+  update: () => boolean;
+
   constructor(
     object: OrthographicCamera | PerspectiveCamera,
     domElement: HTMLElement
   ) {
     super();
-
+    loge("Init constructor");
     if (domElement === undefined)
       console.warn(
         'THREE.OrbitControls: The second parameter "domElement" is now mandatory.'
       );
-    // if ( domElement === document ) console.error( 'THREE.OrbitControls: "document" should not be used as the target "domElement". Please use "renderer.domElement" instead.' );
-
     this.object = object;
     this.domElement = domElement;
+    this.update = (() => {
+      loge("Init update");
+      const offset = new Vector3();
+
+      // so camera.up is the orbit axis
+      const quat = new Quaternion().setFromUnitVectors(
+        this.object.up,
+        new Vector3(0, 1, 0)
+      );
+      const quatInverse = quat.clone().invert();
+
+      const lastPosition = new Vector3();
+      const lastQuaternion = new Quaternion();
+
+      const twoPI = 2 * Math.PI;
+
+      return () => {
+        const position = this.object.position;
+
+        offset.copy(position).sub(this.target);
+
+        // rotate offset to "y-axis-is-up" space
+        offset.applyQuaternion(quat);
+
+        // angle from z-axis around y-axis
+        this.spherical.setFromVector3(offset);
+
+        if (this.autoRotate && this.state === STATE.NONE) {
+          this.rotateLeft(this.getAutoRotationAngle());
+        }
+
+        if (this.enableDamping) {
+          this.spherical.theta +=
+            this.sphericalDelta.theta * this.dampingFactor;
+          this.spherical.phi += this.sphericalDelta.phi * this.dampingFactor;
+        } else {
+          this.spherical.theta += this.sphericalDelta.theta;
+          this.spherical.phi += this.sphericalDelta.phi;
+        }
+
+        // restrict theta to be between desired limits
+
+        let min = this.minAzimuthAngle;
+        let max = this.maxAzimuthAngle;
+
+        if (isFinite(min) && isFinite(max)) {
+          if (min < -Math.PI) min += twoPI;
+          else if (min > Math.PI) min -= twoPI;
+
+          if (max < -Math.PI) max += twoPI;
+          else if (max > Math.PI) max -= twoPI;
+
+          if (min <= max) {
+            this.spherical.theta = Math.max(
+              min,
+              Math.min(max, this.spherical.theta)
+            );
+          } else {
+            this.spherical.theta =
+              this.spherical.theta > (min + max) / 2
+                ? Math.max(min, this.spherical.theta)
+                : Math.min(max, this.spherical.theta);
+          }
+        }
+
+        // restrict phi to be between desired limits
+        this.spherical.phi = Math.max(
+          this.minPolarAngle,
+          Math.min(this.maxPolarAngle, this.spherical.phi)
+        );
+
+        this.spherical.makeSafe();
+
+        this.spherical.radius *= this.scale;
+
+        // restrict radius to be between desired limits
+        this.spherical.radius = Math.max(
+          this.minDistance,
+          Math.min(this.maxDistance, this.spherical.radius)
+        );
+
+        // move target to panned location
+
+        if (this.enableDamping === true) {
+          this.target.addScaledVector(this.panOffset, this.dampingFactor);
+        } else {
+          this.target.add(this.panOffset);
+        }
+
+        offset.setFromSpherical(this.spherical);
+
+        // rotate offset back to "camera-up-vector-is-up" space
+        offset.applyQuaternion(quatInverse);
+
+        position.copy(this.target).add(offset);
+
+        this.object.lookAt(this.target);
+
+        if (this.enableDamping === true) {
+          this.sphericalDelta.theta *= 1 - this.dampingFactor;
+          this.sphericalDelta.phi *= 1 - this.dampingFactor;
+
+          this.panOffset.multiplyScalar(1 - this.dampingFactor);
+        } else {
+          this.sphericalDelta.set(0, 0, 0);
+
+          this.panOffset.set(0, 0, 0);
+        }
+
+        this.scale = 1;
+
+        // update condition is:
+        // min(camera displacement, camera rotation in radians)^2 > EPS
+        // using small-angle approximation cos(x/2) = 1 - x^2 / 8
+
+        if (
+          this.zoomChanged ||
+          lastPosition.distanceToSquared(this.object.position) > EPS ||
+          8 * (1 - lastQuaternion.dot(this.object.quaternion)) > EPS
+        ) {
+          this.dispatchEvent(_changeEvent);
+
+          lastPosition.copy(this.object.position);
+          lastQuaternion.copy(this.object.quaternion);
+          this.zoomChanged = false;
+          return true;
+        }
+        return false;
+      };
+    })();
     this.domElement.style.touchAction = "none"; // disable touch scroll
 
     // for reset
@@ -163,13 +294,25 @@ export class OrbitControls extends EventDispatcher {
 
     //
 
-    this.domElement.addEventListener("contextmenu", this.onContextMenu);
-
-    this.domElement.addEventListener("pointerdown", this.onPointerDown);
-    this.domElement.addEventListener("pointercancel", this.onPointerCancel);
-    this.domElement.addEventListener("wheel", this.onMouseWheel, {
-      passive: false,
+    this.domElement.addEventListener("contextmenu", (event) => {
+      this.onContextMenu(event);
     });
+
+    this.domElement.addEventListener("pointerdown", (event) => {
+      this.onPointerDown(event);
+    });
+    this.domElement.addEventListener("pointercancel", (event) => {
+      this.onPointerCancel(event);
+    });
+    this.domElement.addEventListener(
+      "wheel",
+      (event) => {
+        this.onMouseWheel(event);
+      },
+      {
+        passive: false,
+      }
+    );
 
     // force an update at start
 
@@ -188,7 +331,9 @@ export class OrbitControls extends EventDispatcher {
     return this.object.position.distanceTo(this.target);
   }
   listenToKeyEvents(domElement: HTMLElement) {
-    domElement.addEventListener("keydown", this.onKeyDown);
+    domElement.addEventListener("keydown", (event) => {
+      this.onKeyDown(event);
+    });
   }
   saveState() {
     this.target0.copy(this.target);
@@ -217,135 +362,6 @@ export class OrbitControls extends EventDispatcher {
 
     this.state = STATE.NONE;
   }
-  // this method is exposed, but perhaps it would be better if we can make it private...
-  update = (() => {
-    const offset = new Vector3();
-
-    // so camera.up is the orbit axis
-    const quat = new Quaternion().setFromUnitVectors(
-      this.object.up,
-      new Vector3(0, 1, 0)
-    );
-    const quatInverse = quat.clone().invert();
-
-    const lastPosition = new Vector3();
-    const lastQuaternion = new Quaternion();
-
-    const twoPI = 2 * Math.PI;
-
-    return () => {
-      const position = this.object.position;
-
-      offset.copy(position).sub(this.target);
-
-      // rotate offset to "y-axis-is-up" space
-      offset.applyQuaternion(quat);
-
-      // angle from z-axis around y-axis
-      this.spherical.setFromVector3(offset);
-
-      if (this.autoRotate && this.state === STATE.NONE) {
-        this.rotateLeft(this.getAutoRotationAngle());
-      }
-
-      if (this.enableDamping) {
-        this.spherical.theta += this.sphericalDelta.theta * this.dampingFactor;
-        this.spherical.phi += this.sphericalDelta.phi * this.dampingFactor;
-      } else {
-        this.spherical.theta += this.sphericalDelta.theta;
-        this.spherical.phi += this.sphericalDelta.phi;
-      }
-
-      // restrict theta to be between desired limits
-
-      let min = this.minAzimuthAngle;
-      let max = this.maxAzimuthAngle;
-
-      if (isFinite(min) && isFinite(max)) {
-        if (min < -Math.PI) min += twoPI;
-        else if (min > Math.PI) min -= twoPI;
-
-        if (max < -Math.PI) max += twoPI;
-        else if (max > Math.PI) max -= twoPI;
-
-        if (min <= max) {
-          this.spherical.theta = Math.max(
-            min,
-            Math.min(max, this.spherical.theta)
-          );
-        } else {
-          this.spherical.theta =
-            this.spherical.theta > (min + max) / 2
-              ? Math.max(min, this.spherical.theta)
-              : Math.min(max, this.spherical.theta);
-        }
-      }
-
-      // restrict phi to be between desired limits
-      this.spherical.phi = Math.max(
-        this.minPolarAngle,
-        Math.min(this.maxPolarAngle, this.spherical.phi)
-      );
-
-      this.spherical.makeSafe();
-
-      this.spherical.radius *= this.scale;
-
-      // restrict radius to be between desired limits
-      this.spherical.radius = Math.max(
-        this.minDistance,
-        Math.min(this.maxDistance, this.spherical.radius)
-      );
-
-      // move target to panned location
-
-      if (this.enableDamping === true) {
-        this.target.addScaledVector(this.panOffset, this.dampingFactor);
-      } else {
-        this.target.add(this.panOffset);
-      }
-
-      offset.setFromSpherical(this.spherical);
-
-      // rotate offset back to "camera-up-vector-is-up" space
-      offset.applyQuaternion(quatInverse);
-
-      position.copy(this.target).add(offset);
-
-      this.object.lookAt(this.target);
-
-      if (this.enableDamping === true) {
-        this.sphericalDelta.theta *= 1 - this.dampingFactor;
-        this.sphericalDelta.phi *= 1 - this.dampingFactor;
-
-        this.panOffset.multiplyScalar(1 - this.dampingFactor);
-      } else {
-        this.sphericalDelta.set(0, 0, 0);
-
-        this.panOffset.set(0, 0, 0);
-      }
-
-      this.scale = 1;
-
-      // update condition is:
-      // min(camera displacement, camera rotation in radians)^2 > EPS
-      // using small-angle approximation cos(x/2) = 1 - x^2 / 8
-
-      if (
-        this.zoomChanged ||
-        lastPosition.distanceToSquared(this.object.position) > EPS ||
-        8 * (1 - lastQuaternion.dot(this.object.quaternion)) > EPS
-      ) {
-        this.dispatchEvent(_changeEvent);
-
-        lastPosition.copy(this.object.position);
-        lastQuaternion.copy(this.object.quaternion);
-        this.zoomChanged = false;
-        return true;
-      }
-      return false;
-    };
-  })();
   dispose() {
     this.domElement.removeEventListener("contextmenu", this.onContextMenu);
 
@@ -719,8 +735,12 @@ export class OrbitControls extends EventDispatcher {
     if (this.pointers.length === 0) {
       this.domElement.setPointerCapture(event.pointerId);
 
-      this.domElement.addEventListener("pointermove", this.onPointerMove);
-      this.domElement.addEventListener("pointerup", this.onPointerUp);
+      this.domElement.addEventListener("pointermove", (event) => {
+        this.onPointerMove(event);
+      });
+      this.domElement.addEventListener("pointerup", (event) => {
+        this.onPointerUp(event);
+      });
     }
     //
     this.addPointer(event);

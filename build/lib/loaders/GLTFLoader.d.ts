@@ -133,7 +133,7 @@ declare class GLTFParser {
      * @param {number} cameraIndex
      * @return {Promise<THREE.Camera>}
      */
-    loadCamera(cameraIndex: any): Promise<PerspectiveCamera | OrthographicCamera | undefined> | undefined;
+    loadCamera(cameraIndex: any): Promise<OrthographicCamera | PerspectiveCamera | undefined> | undefined;
     /**
      * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#skins
      * @param {number} skinIndex

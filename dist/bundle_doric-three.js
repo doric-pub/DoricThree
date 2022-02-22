@@ -70,7 +70,7 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
     }
     set gesture(v) {
         this.addEventListener = (name, fn) => {
-            if (name == "pointerdown") {
+            if (name === "pointerdown") {
                 v.onTouchDown = ({ x, y }) => {
                     fn({
                         pageX: x * Environment.screenScale,
@@ -79,7 +79,7 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
                     });
                 };
             }
-            else if (name == "pointerup") {
+            else if (name === "pointerup") {
                 v.onTouchUp = ({ x, y }) => {
                     fn({
                         pageX: x * Environment.screenScale,
@@ -88,7 +88,7 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
                     });
                 };
             }
-            else if (name == "pointermove") {
+            else if (name === "pointermove") {
                 v.onTouchMove = ({ x, y }) => {
                     fn({
                         pageX: x * Environment.screenScale,
@@ -97,12 +97,19 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
                     });
                 };
             }
-            else if (name == "pointercancel") {
+            else if (name === "pointercancel") {
                 v.onTouchCancel = ({ x, y }) => {
                     fn({
                         pageX: x * Environment.screenScale,
                         pageY: y * Environment.screenScale,
                         pointerType: "touch",
+                    });
+                };
+            }
+            else if (name === "wheel") {
+                v.onPinch = (scale) => {
+                    fn({
+                        deltaY: 1 - scale,
                     });
                 };
             }
@@ -550,7 +557,7 @@ class OrbitControls extends THREE.EventDispatcher {
         }
         if (needsUpdate) {
             // prevent the browser from scrolling on cursor keys
-            event.preventDefault();
+            // event.preventDefault();
             this.update();
         }
     }
@@ -791,9 +798,11 @@ class OrbitControls extends THREE.EventDispatcher {
     onMouseWheel(event) {
         if (this.enabled === false ||
             this.enableZoom === false ||
-            (this.state !== STATE.NONE && this.state !== STATE.ROTATE))
+            (this.state !== STATE.NONE &&
+                this.state !== STATE.ROTATE &&
+                this.state !== STATE.TOUCH_ROTATE))
             return;
-        event.preventDefault();
+        //    event.preventDefault();
         this.dispatchEvent(_startEvent);
         this.handleMouseWheel(event);
         this.dispatchEvent(_endEvent);
@@ -888,7 +897,7 @@ class OrbitControls extends THREE.EventDispatcher {
     onContextMenu(event) {
         if (this.enabled === false)
             return;
-        event.preventDefault();
+        // event.preventDefault();
     }
     addPointer(event) {
         this.pointers.push(event);

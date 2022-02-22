@@ -15,6 +15,7 @@ import {
 } from "doric";
 import THREE from "three";
 import { OrbitControls, ThreeView, loadGLTF } from "doric-three";
+import { vsync } from "dangle";
 
 @Entry
 class Example extends Panel {
@@ -41,12 +42,12 @@ class Example extends Panel {
             try {
               const scene = new THREE.Scene();
               const camera = new THREE.PerspectiveCamera(
-                40,
+                50,
                 renderer.domElement.width / renderer.domElement.height,
                 1,
                 100
               );
-              camera.position.set(5, 2, 2);
+              camera.position.set(0, 0, 5);
               {
                 const skyColor = 0xffffff;
                 const groundColor = 0xffffff; // brownish orange
@@ -68,17 +69,20 @@ class Example extends Panel {
 
               const controls = new OrbitControls(camera, renderer.domElement);
               controls.target.set(0, 0.5, 0);
+              //controls.enableZoom = false;
               controls.update();
               controls.enablePan = false;
               controls.enableDamping = true;
-              const requestAnimationFrame = (func: () => void) => {
-                setTimeout(func, 16);
-              };
+              controls.minDistance = 1;
+              controls.maxDistance = 100;
+              controls.zoomSpeed = 0.5;
+              const requestAnimationFrame = vsync(
+                this.context
+              ).requestAnimationFrame;
               loge("start loading gltf");
-
               const gltf = await loadGLTF(
                 this.context,
-                new AssetsResource("qishi.glb")
+                new AssetsResource("threejs/LittlestTokyo/LittlestTokyo.gltf")
               );
               loge("loaded gltf");
               let mixer: THREE.AnimationMixer;
@@ -92,7 +96,7 @@ class Example extends Panel {
               }
               const model = gltf.scene;
               model.position.set(1, 1, 0);
-              model.scale.set(1, 1, 1);
+              model.scale.set(0.01, 0.01, 0.01);
               scene.add(model);
               mixer = new THREE.AnimationMixer(model);
               gltf.animations.forEach((e) => {

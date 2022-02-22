@@ -1,4 +1,5 @@
 import { logw } from "doric";
+import { loge } from "doric/lib/src/util/log";
 import {
   EventDispatcher,
   Matrix4,
@@ -222,7 +223,6 @@ export class OrbitControls extends EventDispatcher {
         );
 
         this.spherical.makeSafe();
-
         this.spherical.radius *= this.scale;
 
         // restrict radius to be between desired limits
@@ -594,7 +594,7 @@ export class OrbitControls extends EventDispatcher {
 
     if (needsUpdate) {
       // prevent the browser from scrolling on cursor keys
-      event.preventDefault();
+      // event.preventDefault();
 
       this.update();
     }
@@ -897,11 +897,13 @@ export class OrbitControls extends EventDispatcher {
     if (
       this.enabled === false ||
       this.enableZoom === false ||
-      (this.state !== STATE.NONE && this.state !== STATE.ROTATE)
+      (this.state !== STATE.NONE &&
+        this.state !== STATE.ROTATE &&
+        this.state !== STATE.TOUCH_ROTATE)
     )
       return;
 
-    event.preventDefault();
+    //    event.preventDefault();
 
     this.dispatchEvent(_startEvent);
 
@@ -1038,7 +1040,7 @@ export class OrbitControls extends EventDispatcher {
   onContextMenu(event: MouseEvent) {
     if (this.enabled === false) return;
 
-    event.preventDefault();
+    // event.preventDefault();
   }
 
   addPointer(event: PointerEvent) {

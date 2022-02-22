@@ -62,7 +62,7 @@ let ThreeView = class ThreeView extends DangleView {
     }
     set gesture(v) {
         this.addEventListener = (name, fn) => {
-            if (name == "pointerdown") {
+            if (name === "pointerdown") {
                 v.onTouchDown = ({ x, y }) => {
                     fn({
                         pageX: x * Environment.screenScale,
@@ -71,7 +71,7 @@ let ThreeView = class ThreeView extends DangleView {
                     });
                 };
             }
-            else if (name == "pointerup") {
+            else if (name === "pointerup") {
                 v.onTouchUp = ({ x, y }) => {
                     fn({
                         pageX: x * Environment.screenScale,
@@ -80,7 +80,7 @@ let ThreeView = class ThreeView extends DangleView {
                     });
                 };
             }
-            else if (name == "pointermove") {
+            else if (name === "pointermove") {
                 v.onTouchMove = ({ x, y }) => {
                     fn({
                         pageX: x * Environment.screenScale,
@@ -89,12 +89,19 @@ let ThreeView = class ThreeView extends DangleView {
                     });
                 };
             }
-            else if (name == "pointercancel") {
+            else if (name === "pointercancel") {
                 v.onTouchCancel = ({ x, y }) => {
                     fn({
                         pageX: x * Environment.screenScale,
                         pageY: y * Environment.screenScale,
                         pointerType: "touch",
+                    });
+                };
+            }
+            else if (name === "wheel") {
+                v.onPinch = (scale) => {
+                    fn({
+                        deltaY: 1 - scale,
                     });
                 };
             }

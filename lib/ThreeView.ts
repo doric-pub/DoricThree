@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { GestureContainer, Ref, ViewComponent } from "doric";
+import { GestureContainer, loge, Ref, ViewComponent } from "doric";
 import { DangleView, DangleWebGLRenderingContext } from "dangle";
 import THREE from "three";
 
@@ -60,11 +60,8 @@ export class ThreeView extends DangleView {
     };
   }
   set gesture(v: GestureContainer) {
-    this.addEventListener = (
-      name: string,
-      fn: (event: { pageX: number; pageY: number; pointerType: string }) => void
-    ) => {
-      if (name == "pointerdown") {
+    this.addEventListener = (name: string, fn: (event: Event) => void) => {
+      if (name === "pointerdown") {
         v.onTouchDown = ({ x, y }) => {
           fn({
             pageX: x * Environment.screenScale,
@@ -72,7 +69,7 @@ export class ThreeView extends DangleView {
             pointerType: "touch",
           });
         };
-      } else if (name == "pointerup") {
+      } else if (name === "pointerup") {
         v.onTouchUp = ({ x, y }) => {
           fn({
             pageX: x * Environment.screenScale,
@@ -80,7 +77,7 @@ export class ThreeView extends DangleView {
             pointerType: "touch",
           });
         };
-      } else if (name == "pointermove") {
+      } else if (name === "pointermove") {
         v.onTouchMove = ({ x, y }) => {
           fn({
             pageX: x * Environment.screenScale,
@@ -88,12 +85,18 @@ export class ThreeView extends DangleView {
             pointerType: "touch",
           });
         };
-      } else if (name == "pointercancel") {
+      } else if (name === "pointercancel") {
         v.onTouchCancel = ({ x, y }) => {
           fn({
             pageX: x * Environment.screenScale,
             pageY: y * Environment.screenScale,
             pointerType: "touch",
+          });
+        };
+      } else if (name === "wheel") {
+        v.onPinch = (scale) => {
+          fn({
+            deltaY: 1 - scale,
           });
         };
       }

@@ -436,7 +436,7 @@ export class OrbitControls extends EventDispatcher {
         }
         if (needsUpdate) {
             // prevent the browser from scrolling on cursor keys
-            event.preventDefault();
+            // event.preventDefault();
             this.update();
         }
     }
@@ -677,9 +677,11 @@ export class OrbitControls extends EventDispatcher {
     onMouseWheel(event) {
         if (this.enabled === false ||
             this.enableZoom === false ||
-            (this.state !== STATE.NONE && this.state !== STATE.ROTATE))
+            (this.state !== STATE.NONE &&
+                this.state !== STATE.ROTATE &&
+                this.state !== STATE.TOUCH_ROTATE))
             return;
-        event.preventDefault();
+        //    event.preventDefault();
         this.dispatchEvent(_startEvent);
         this.handleMouseWheel(event);
         this.dispatchEvent(_endEvent);
@@ -774,7 +776,7 @@ export class OrbitControls extends EventDispatcher {
     onContextMenu(event) {
         if (this.enabled === false)
             return;
-        event.preventDefault();
+        // event.preventDefault();
     }
     addPointer(event) {
         this.pointers.push(event);

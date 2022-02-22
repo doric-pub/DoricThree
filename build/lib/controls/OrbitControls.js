@@ -1,4 +1,4 @@
-import { loge } from "doric";
+import { logw } from "doric";
 import { EventDispatcher, MOUSE, OrthographicCamera, PerspectiveCamera, Quaternion, Spherical, TOUCH, Vector2, Vector3, } from "three";
 // This set of controls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
@@ -144,18 +144,16 @@ export class OrbitControls extends EventDispatcher {
                 }
                 else {
                     // camera neither orthographic nor perspective
-                    console.warn("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.");
+                    logw("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.");
                     this.enablePan = false;
                 }
             };
         })();
-        loge("Init constructor");
         if (domElement === undefined)
-            console.warn('THREE.OrbitControls: The second parameter "domElement" is now mandatory.');
+            logw('THREE.OrbitControls: The second parameter "domElement" is now mandatory.');
         this.object = object;
         this.domElement = domElement;
         this.update = (() => {
-            loge("Init update");
             const offset = new Vector3();
             // so camera.up is the orbit axis
             const quat = new Quaternion().setFromUnitVectors(this.object.up, new Vector3(0, 1, 0));
@@ -342,7 +340,7 @@ export class OrbitControls extends EventDispatcher {
             this.zoomChanged = true;
         }
         else {
-            console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
+            logw("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
             this.enableZoom = false;
         }
     }
@@ -356,7 +354,7 @@ export class OrbitControls extends EventDispatcher {
             this.zoomChanged = true;
         }
         else {
-            console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
+            logw("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
             this.enableZoom = false;
         }
     }

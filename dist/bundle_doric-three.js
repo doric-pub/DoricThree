@@ -258,18 +258,16 @@ class OrbitControls extends THREE.EventDispatcher {
                 }
                 else {
                     // camera neither orthographic nor perspective
-                    console.warn("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.");
+                    doric.logw("WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.");
                     this.enablePan = false;
                 }
             };
         })();
-        doric.loge("Init constructor");
         if (domElement === undefined)
-            console.warn('THREE.OrbitControls: The second parameter "domElement" is now mandatory.');
+            doric.logw('THREE.OrbitControls: The second parameter "domElement" is now mandatory.');
         this.object = object;
         this.domElement = domElement;
         this.update = (() => {
-            doric.loge("Init update");
             const offset = new THREE.Vector3();
             // so camera.up is the orbit axis
             const quat = new THREE.Quaternion().setFromUnitVectors(this.object.up, new THREE.Vector3(0, 1, 0));
@@ -456,7 +454,7 @@ class OrbitControls extends THREE.EventDispatcher {
             this.zoomChanged = true;
         }
         else {
-            console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
+            doric.logw("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
             this.enableZoom = false;
         }
     }
@@ -470,7 +468,7 @@ class OrbitControls extends THREE.EventDispatcher {
             this.zoomChanged = true;
         }
         else {
-            console.warn("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
+            doric.logw("WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled.");
             this.enableZoom = false;
         }
     }
@@ -937,7 +935,7 @@ class MapControls extends OrbitControls {
     }
 }
 
-const console$1 = {
+const console = {
     error: (...args) => {
         doric.loge(args);
     },
@@ -1176,7 +1174,7 @@ class GLTFLoader extends THREE.Loader {
                 onError(e);
             }
             else {
-                console$1.error(e);
+                console.error(e);
             }
             scope.manager.itemError(url);
             scope.manager.itemEnd(url);
@@ -1298,7 +1296,7 @@ class GLTFLoader extends THREE.Loader {
                     default:
                         if (extensionsRequired.indexOf(extensionName) >= 0 &&
                             plugins[extensionName] === undefined) {
-                            console$1.warn('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                            console.warn('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
                         }
                 }
             }
@@ -1950,7 +1948,7 @@ class GLTFTextureTransformExtension {
     }
     extendTexture(texture, transform) {
         if (transform.texCoord !== undefined) {
-            console$1.warn('THREE.GLTFLoader: Custom UV sets in "' +
+            console.warn('THREE.GLTFLoader: Custom UV sets in "' +
                 this.name +
                 '" extension not yet supported.');
         }
@@ -2405,7 +2403,7 @@ function assignExtrasToUserData(object, gltfDef) {
             Object.assign(object.userData, gltfDef.extras);
         }
         else {
-            console$1.warn("THREE.GLTFLoader: Ignoring primitive type .extras, " + gltfDef.extras);
+            console.warn("THREE.GLTFLoader: Ignoring primitive type .extras, " + gltfDef.extras);
         }
     }
 }
@@ -2483,7 +2481,7 @@ function updateMorphTargets(mesh, meshDef) {
             }
         }
         else {
-            console$1.warn("THREE.GLTFLoader: Invalid extras.targetNames length. Ignoring names.");
+            console.warn("THREE.GLTFLoader: Invalid extras.targetNames length. Ignoring names.");
         }
     }
 }
@@ -3000,7 +2998,7 @@ class GLTFParser {
             return texture;
         })
             .catch(function () {
-            console$1.error("THREE.GLTFLoader: Couldn't load texture", sourceURI);
+            console.error("THREE.GLTFLoader: Couldn't load texture", sourceURI);
             return null;
         });
         this.textureCache[cacheKey] = promise;
@@ -3021,7 +3019,7 @@ class GLTFParser {
             if (mapDef.texCoord !== undefined &&
                 mapDef.texCoord != 0 &&
                 !(mapName === "aoMap" && mapDef.texCoord == 1)) {
-                console$1.warn("THREE.GLTFLoader: Custom UV set " +
+                console.warn("THREE.GLTFLoader: Custom UV set " +
                     mapDef.texCoord +
                     " for texture " +
                     mapName +
@@ -3401,7 +3399,7 @@ class GLTFParser {
         const cameraDef = this.json.cameras[cameraIndex];
         const params = cameraDef[cameraDef.type];
         if (!params) {
-            console$1.warn("THREE.GLTFLoader: Missing camera parameters.");
+            console.warn("THREE.GLTFLoader: Missing camera parameters.");
             return;
         }
         if (cameraDef.type === "perspective") {
@@ -3737,7 +3735,7 @@ function buildNodeHierarchy(nodeId, parentObject, json, parser) {
                         boneInverses.push(mat);
                     }
                     else {
-                        console$1.warn('THREE.GLTFLoader: Joint "%s" could not be found.', skinEntry.joints[j]);
+                        console.warn('THREE.GLTFLoader: Joint "%s" could not be found.', skinEntry.joints[j]);
                     }
                 }
                 mesh.bind(new THREE.Skeleton(bones, boneInverses), mesh.matrixWorld);
@@ -3781,7 +3779,7 @@ function computeBounds(geometry, primitiveDef, parser) {
             }
         }
         else {
-            console$1.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
+            console.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
             return;
         }
     }
@@ -3815,7 +3813,7 @@ function computeBounds(geometry, primitiveDef, parser) {
                     maxDisplacement.max(vector);
                 }
                 else {
-                    console$1.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
+                    console.warn("THREE.GLTFLoader: Missing min/max properties for accessor POSITION.");
                 }
             }
         }
@@ -3886,7 +3884,7 @@ function toTrianglesDrawMode(geometry, drawMode) {
             index = geometry.getIndex();
         }
         else {
-            console$1.error("THREE.GLTFLoader.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.");
+            console.error("THREE.GLTFLoader.toTrianglesDrawMode(): Undefined position attribute. Processing not possible.");
             return geometry;
         }
     }
@@ -3917,7 +3915,7 @@ function toTrianglesDrawMode(geometry, drawMode) {
         }
     }
     if (newIndices.length / 3 !== numberOfTriangles) {
-        console$1.error("THREE.GLTFLoader.toTrianglesDrawMode(): Unable to generate correct amount of triangles.");
+        console.error("THREE.GLTFLoader.toTrianglesDrawMode(): Unable to generate correct amount of triangles.");
     }
     // build final geometry
     const newGeometry = geometry.clone();

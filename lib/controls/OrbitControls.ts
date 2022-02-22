@@ -1,4 +1,4 @@
-import { loge } from "doric";
+import { logw } from "doric";
 import {
   EventDispatcher,
   Matrix4,
@@ -145,15 +145,13 @@ export class OrbitControls extends EventDispatcher {
     domElement: HTMLElement
   ) {
     super();
-    loge("Init constructor");
     if (domElement === undefined)
-      console.warn(
+      logw(
         'THREE.OrbitControls: The second parameter "domElement" is now mandatory.'
       );
     this.object = object;
     this.domElement = domElement;
     this.update = (() => {
-      loge("Init update");
       const offset = new Vector3();
 
       // so camera.up is the orbit axis
@@ -452,7 +450,7 @@ export class OrbitControls extends EventDispatcher {
         );
       } else {
         // camera neither orthographic nor perspective
-        console.warn(
+        logw(
           "WARNING: OrbitControls.js encountered an unknown camera type - pan disabled."
         );
         this.enablePan = false;
@@ -471,7 +469,7 @@ export class OrbitControls extends EventDispatcher {
       this.object.updateProjectionMatrix();
       this.zoomChanged = true;
     } else {
-      console.warn(
+      logw(
         "WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled."
       );
       this.enableZoom = false;
@@ -488,7 +486,7 @@ export class OrbitControls extends EventDispatcher {
       this.object.updateProjectionMatrix();
       this.zoomChanged = true;
     } else {
-      console.warn(
+      logw(
         "WARNING: OrbitControls.js encountered an unknown camera type - dolly/zoom disabled."
       );
       this.enableZoom = false;

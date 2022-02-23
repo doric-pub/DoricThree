@@ -1,5 +1,4 @@
 import { EXTENSIONS, MeshExtension } from "./GLTFExtensions";
-import * as GSpec from "../glTF";
 import * as Three from "three";
 /**
  * Clearcoat Materials Extension

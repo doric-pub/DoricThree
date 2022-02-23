@@ -13,7 +13,7 @@ import * as GSpec from "../glTF";
  * changed via the `onBeforeCompile` callback
  * @pailhead
  */
-class GLTFMeshStandardSGMaterial extends Three.MeshStandardMaterial {
+export class GLTFMeshStandardSGMaterial extends Three.MeshStandardMaterial {
   isGLTFSpecularGlossinessMaterial = true;
   constructor(params: Three.MeshStandardMaterialParameters) {
     super();

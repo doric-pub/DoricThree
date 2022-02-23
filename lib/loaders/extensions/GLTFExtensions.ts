@@ -35,6 +35,18 @@ export type GLTFContext = {
     source: GSpec.Image,
     loader: Three.Loader
   ): Promise<Three.Texture>;
+  loadBuffer(index: number): Promise<ArrayBuffer>;
+  meshoptDecoder?: {
+    ready: () => Promise<void>;
+    supported: boolean;
+    decode: (
+      source: Uint8Array,
+      count: number,
+      stride: number,
+      mode: any,
+      filter: any
+    ) => Promise<ArrayBuffer>;
+  };
 };
 
 export abstract class GLTFExtension {
@@ -93,5 +105,5 @@ export abstract class TextureExtraExtension extends GLTFExtension {
 }
 
 export abstract class BufferViewExtension extends GLTFExtension {
-  abstract loadBufferView(index: number): Promise<ArrayBuffer> | Promise<void>;
+  abstract loadBufferView(index: number): Promise<ArrayBuffer | void>;
 }

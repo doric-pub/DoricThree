@@ -1,6 +1,5 @@
 import { EXTENSIONS, MeshExtension } from "./GLTFExtensions";
 import * as Three from "three";
-import * as GSpec from "../glTF";
 /**
  * Materials Volume Extension
  *

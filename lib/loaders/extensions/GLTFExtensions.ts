@@ -18,6 +18,7 @@ export const EXTENSIONS = {
   EXT_TEXTURE_WEBP: "EXT_texture_webp",
   EXT_MESHOPT_COMPRESSION: "EXT_meshopt_compression",
 };
+
 export type GLTFContext = {
   gltf: GSpec.GLTF;
   createUniqueName(n: string): string;
@@ -27,6 +28,12 @@ export type GLTFContext = {
     materialParams: Three.MaterialParameters,
     mapName: string,
     mapDef: any
+  ): Promise<Three.Texture>;
+  ktx2Loader?: Three.Loader;
+  loadTextureImage(
+    index: number,
+    source: GSpec.Image,
+    loader: Three.Loader
   ): Promise<Three.Texture>;
 };
 
@@ -76,7 +83,9 @@ export abstract class MeshExtension extends GLTFExtension {
 }
 
 export abstract class TextureExtension extends GLTFExtension {
-  abstract loadTexture(textureIndex: number): Promise<Three.Texture>;
+  abstract loadTexture(
+    textureIndex: number
+  ): Promise<Three.Texture> | Promise<void>;
 }
 
 export abstract class TextureExtraExtension extends GLTFExtension {
@@ -84,5 +93,5 @@ export abstract class TextureExtraExtension extends GLTFExtension {
 }
 
 export abstract class BufferViewExtension extends GLTFExtension {
-  abstract loadBufferView(index: number): Promise<ArrayBuffer>;
+  abstract loadBufferView(index: number): Promise<ArrayBuffer> | Promise<void>;
 }

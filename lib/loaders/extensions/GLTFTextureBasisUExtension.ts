@@ -9,16 +9,16 @@ import { logw } from "doric";
 export class GLTFTextureBasisUExtension extends TextureExtension {
   name = EXTENSIONS.KHR_TEXTURE_BASISU;
 
-  loadTexture(textureIndex: number) {
+  async loadTexture(textureIndex: number) {
     const textureDef = this.gltf.textures?.[textureIndex];
 
     if (!!!textureDef?.extensions?.[this.name]) {
-      return Promise.resolve();
+      return;
     }
     const extension = textureDef.extensions[this.name];
     const source = this.gltf.images?.[extension.source];
     if (!!!source) {
-      return Promise.resolve();
+      return;
     }
     const loader = this.context.ktx2Loader;
 
@@ -35,9 +35,14 @@ export class GLTFTextureBasisUExtension extends TextureExtension {
           "THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures"
         );
         // Assumes that the extension is optional and that a fallback texture is present
-        return Promise.resolve();
+        return;
       }
     }
-    return this.context.loadTextureImage(textureIndex, source, loader);
+    const ret = await this.context.loadTextureImage(
+      textureIndex,
+      source,
+      loader
+    );
+    return ret;
   }
 }

@@ -30,6 +30,7 @@ export type GLTFContext = {
     mapDef: any
   ): Promise<Three.Texture>;
   ktx2Loader?: Three.Loader;
+  textureLoader: Three.Loader;
   loadTextureImage(
     index: number,
     source: GSpec.Image,
@@ -95,9 +96,7 @@ export abstract class MeshExtension extends GLTFExtension {
 }
 
 export abstract class TextureExtension extends GLTFExtension {
-  abstract loadTexture(
-    textureIndex: number
-  ): Promise<Three.Texture> | Promise<void>;
+  abstract loadTexture(textureIndex: number): Promise<Three.Texture | void>;
 }
 
 export abstract class TextureExtraExtension extends GLTFExtension {

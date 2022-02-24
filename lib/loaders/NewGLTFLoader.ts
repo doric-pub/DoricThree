@@ -28,6 +28,10 @@ import {
 import { GLTFMaterialsUnlitExtension } from "./extensions/GLTFMaterialsUnlitExtension";
 import { GLTFTextureTransformExtension } from "./extensions/GLTFTextureTransformExtension";
 import * as GSpec from "./gltf";
+import {
+  GLTFCubicSplineInterpolant,
+  GLTFCubicSplineQuaternionInterpolant,
+} from "./Interpolation";
 
 export type GLTF = {
   scene: THREE.Scene;
@@ -92,21 +96,21 @@ const WEBGL_TYPE_SIZES = {
   MAT4: 16,
 };
 
-const PATH_PROPERTIES = {
+const PATH_PROPERTIES: Record<string, string> = {
   scale: "scale",
   translation: "position",
   rotation: "quaternion",
   weights: "morphTargetInfluences",
 };
 
-const INTERPOLATION = {
+const INTERPOLATION: Record<string, Three.InterpolationModes | undefined> = {
   CUBICSPLINE: undefined, // We use a custom interpolant (GLTFCubicSplineInterpolation) for CUBICSPLINE tracks. Each
   // keyframe track will be initialized with a default interpolation type, then modified.
   LINEAR: Three.InterpolateLinear,
   STEP: Three.InterpolateDiscrete,
 };
 
-const ALPHA_MODES = {
+const ALPHA_MODES: Record<string, string> = {
   OPAQUE: "OPAQUE",
   MASK: "MASK",
   BLEND: "BLEND",
@@ -472,6 +476,7 @@ class GLTFParser {
     | Three.InterleavedBuffer
     | Three.BufferAttribute
     | Three.InterleavedBufferAttribute
+    | Three.AnimationClip
     | ArrayBuffer
     | {
         joints: number[];
@@ -1458,6 +1463,175 @@ class GLTFParser {
     return node;
   }
   /**
+   * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#animations
+   * @param {number} animationIndex
+   * @return {Promise<AnimationClip>}
+   */
+  async loadAnimation(animationIndex: number) {
+    const animationDef = this.gltf.animations?.[animationIndex];
+    if (!!!animationDef) {
+      return;
+    }
+    const pendingNodes = [];
+    const pendingInputAccessors = [];
+    const pendingOutputAccessors = [];
+    const pendingSamplers = [];
+    const pendingTargets = [];
+
+    for (let i = 0, il = animationDef.channels.length; i < il; i++) {
+      const channel = animationDef.channels[i];
+      const sampler = animationDef.samplers[channel.sampler];
+      const target = channel.target;
+      const name = target.node !== undefined ? target.node : target.id; // NOTE: target.id is deprecated.
+      const input =
+        animationDef.parameters !== undefined
+          ? animationDef.parameters[sampler.input]
+          : sampler.input;
+      const output =
+        animationDef.parameters !== undefined
+          ? animationDef.parameters[sampler.output]
+          : sampler.output;
+
+      pendingNodes.push(this.getDependency<Three.Object3D>("node", name));
+      pendingInputAccessors.push(
+        this.getDependency<
+          Three.BufferAttribute | Three.InterleavedBufferAttribute
+        >("accessor", input)
+      );
+      pendingOutputAccessors.push(
+        this.getDependency<
+          Three.BufferAttribute | Three.InterleavedBufferAttribute
+        >("accessor", output)
+      );
+      pendingSamplers.push(sampler);
+      pendingTargets.push(target);
+    }
+    const dependencies = await Promise.all([
+      Promise.all(pendingNodes),
+      Promise.all(pendingInputAccessors),
+      Promise.all(pendingOutputAccessors),
+      Promise.all(pendingSamplers),
+      Promise.all(pendingTargets),
+    ]);
+    const nodes = dependencies[0];
+    const inputAccessors = dependencies[1];
+    const outputAccessors = dependencies[2];
+    const samplers = dependencies[3];
+    const targets = dependencies[4];
+
+    const tracks = [];
+
+    for (let i = 0, il = nodes.length; i < il; i++) {
+      const node = nodes[i];
+      const inputAccessor = inputAccessors[i];
+      const outputAccessor = outputAccessors[i];
+      const sampler = samplers[i];
+      const target = targets[i];
+
+      if (node === undefined) continue;
+
+      node.updateMatrix();
+      node.matrixAutoUpdate = true;
+
+      let TypedKeyframeTrack;
+
+      switch (PATH_PROPERTIES[target.path]) {
+        case PATH_PROPERTIES.weights:
+          TypedKeyframeTrack = Three.NumberKeyframeTrack;
+          break;
+
+        case PATH_PROPERTIES.rotation:
+          TypedKeyframeTrack = Three.QuaternionKeyframeTrack;
+          break;
+
+        case PATH_PROPERTIES.position:
+        case PATH_PROPERTIES.scale:
+        default:
+          TypedKeyframeTrack = Three.VectorKeyframeTrack;
+          break;
+      }
+
+      const targetName = node.name ? node.name : node.uuid;
+
+      const interpolation =
+        sampler.interpolation !== undefined
+          ? INTERPOLATION[sampler.interpolation]
+          : Three.InterpolateLinear;
+
+      const targetNames = [];
+
+      if (PATH_PROPERTIES[target.path] === PATH_PROPERTIES.weights) {
+        node.traverse((object) => {
+          if ((object as Three.Mesh).morphTargetInfluences) {
+            targetNames.push(object.name ? object.name : object.uuid);
+          }
+        });
+      } else {
+        targetNames.push(targetName);
+      }
+
+      let outputArray = outputAccessor.array;
+
+      if (outputAccessor.normalized) {
+        const scale = getNormalizedComponentScale(
+          outputArray.constructor as ValueOf<typeof WEBGL_COMPONENT_TYPES>
+        );
+        const scaled = new Float32Array(outputArray.length);
+
+        for (let j = 0, jl = outputArray.length; j < jl; j++) {
+          scaled[j] = outputArray[j] * scale;
+        }
+
+        outputArray = scaled;
+      }
+
+      for (let j = 0, jl = targetNames.length; j < jl; j++) {
+        const track = new TypedKeyframeTrack(
+          targetNames[j] + "." + PATH_PROPERTIES[target.path],
+          inputAccessor.array as any[],
+          outputArray as any[],
+          interpolation
+        );
+
+        // Override interpolation with custom factory method.
+        if (sampler.interpolation === "CUBICSPLINE") {
+          (track as any).createInterpolant =
+            function InterpolantFactoryMethodGLTFCubicSpline(result: any) {
+              // A CUBICSPLINE keyframe in glTF has three output values for each input value,
+              // representing inTangent, splineVertex, and outTangent. As a result, track.getValueSize()
+              // must be divided by three to get the interpolant's sampleSize argument.
+
+              const interpolantType =
+                this instanceof Three.QuaternionKeyframeTrack
+                  ? GLTFCubicSplineQuaternionInterpolant
+                  : GLTFCubicSplineInterpolant;
+
+              return new interpolantType(
+                this.times,
+                this.values,
+                this.getValueSize() / 3,
+                result
+              );
+            };
+
+          // Mark as CUBICSPLINE. `track.getInterpolation()` doesn't support custom interpolants.
+          (
+            track as any
+          ).createInterpolant.isInterpolantFactoryMethodGLTFCubicSpline = true;
+        }
+
+        tracks.push(track);
+      }
+    }
+
+    const name = animationDef.name
+      ? animationDef.name
+      : "animation_" + animationIndex;
+
+    return new Three.AnimationClip(name, undefined, tracks);
+  }
+
+  /**
    * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#nodes-and-hierarchy
    * @param {number} nodeIndex
    * @return {Promise<Object3D>}
@@ -1547,6 +1721,135 @@ class GLTFParser {
     }
     return node;
   }
+  async buildNodeHierarchy(
+    nodeId: number,
+    parentObject: Three.Object3D
+  ): Promise<Three.Object3D | Three.Object3D[]> {
+    const nodeDef = this.gltf.nodes?.[nodeId];
+    if (!!!nodeDef) {
+      throw new Error("buildNodeHierarchy error");
+    }
+    const node = await this.getDependency<Three.Object3D>("node", nodeId);
+
+    if (nodeDef.skin === undefined) return node;
+
+    // build skeleton here as well
+    const skinEntry = await this.getDependency<{
+      joints: number[];
+      inverseBindMatrices?:
+        | Three.BufferAttribute
+        | Three.InterleavedBufferAttribute
+        | undefined;
+    }>("skin", nodeDef.skin);
+    const pendingJoints = [];
+
+    for (let i = 0, il = skinEntry.joints.length; i < il; i++) {
+      pendingJoints.push(
+        this.getDependency<Three.Object3D>("node", skinEntry.joints[i])
+      );
+    }
+    const jointNodes = await Promise.all(pendingJoints);
+    node.traverse((mesh) => {
+      if (!(mesh as any).isMesh) return;
+      const bones: Three.Bone[] = [];
+      const boneInverses = [];
+
+      for (let j = 0, jl = jointNodes.length; j < jl; j++) {
+        const jointNode = jointNodes[j];
+
+        if (jointNode) {
+          bones.push(jointNode as Three.Bone);
+
+          const mat = new Three.Matrix4();
+
+          if (skinEntry.inverseBindMatrices !== undefined) {
+            mat.fromArray(skinEntry.inverseBindMatrices.array, j * 16);
+          }
+
+          boneInverses.push(mat);
+        } else {
+          logw(
+            'THREE.GLTFLoader: Joint "%s" could not be found.',
+            skinEntry.joints[j]
+          );
+        }
+      }
+      (mesh as Three.SkinnedMesh).bind(
+        new Three.Skeleton(bones, boneInverses),
+        mesh.matrixWorld
+      );
+    });
+
+    parentObject.add(node);
+
+    const pending: Array<Promise<any>> = [];
+
+    if (nodeDef.children) {
+      const children = nodeDef.children;
+
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        pending.push(this.buildNodeHierarchy(child, node));
+      }
+    }
+
+    return Promise.all(pending);
+  }
+  /**
+   * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#scenes
+   * @param {number} sceneIndex
+   * @return {Promise<Group>}
+   */
+  async loadScene(sceneIndex: number) {
+    const extensions = this.extensions;
+    const sceneDef = this.gltf.scenes?.[sceneIndex];
+    if (!!!sceneDef) {
+      return;
+    }
+    // Loader returns Group, not Scene.
+    // See: https://github.com/mrdoob/three.js/issues/18342#issuecomment-578981172
+    const scene = new Three.Group();
+    if (sceneDef.name) scene.name = createUniqueName(sceneDef.name);
+
+    assignExtrasToUserData(scene, sceneDef);
+
+    if (sceneDef.extensions)
+      addUnknownExtensionsToUserData(extensions, scene, sceneDef);
+
+    const nodeIds = sceneDef.nodes || [];
+
+    const pending = [];
+
+    for (let i = 0, il = nodeIds.length; i < il; i++) {
+      pending.push(this.buildNodeHierarchy(nodeIds[i], scene));
+    }
+    await Promise.all(pending);
+
+    // Removes dangling associations, associations that reference a node that
+    // didn't make it into the scene.
+    const reduceAssociations = (node: Three.Object3D) => {
+      const reducedAssociations = new Map();
+
+      for (const [key, value] of this.associations) {
+        if (key instanceof Three.Material || key instanceof Three.Texture) {
+          reducedAssociations.set(key, value);
+        }
+      }
+
+      node.traverse((node) => {
+        const mappings = this.associations.get(node);
+        if (!!mappings) {
+          reducedAssociations.set(node, mappings);
+        }
+      });
+
+      return reducedAssociations;
+    };
+
+    this.associations = reduceAssociations(scene);
+
+    return scene;
+  }
 
   async getDependency<T>(type: GLTFDepsType, index: number) {
     const cacheKey = type + ":" + index;
@@ -1576,6 +1879,16 @@ class GLTFParser {
           break;
         case "skin":
           dependency = await this.loadSkin(index);
+          break;
+        case "node":
+          dependency = await this.loadNode(index);
+          break;
+        case "animation":
+          dependency = await this.loadAnimation(index);
+          break;
+        case "scene":
+          dependency = await this.loadScene(index);
+          break;
       }
 
       if (!!dependency) {

@@ -54,6 +54,10 @@ export type ValueOf<T> = T[keyof T];
 
 export type GLTFContext = {
   gltf: GSpec.GLTF;
+  _addNodeRef(
+    cache: { refs: Record<number, number>; uses: Record<number, number> },
+    index: number
+  ): void;
   createUniqueName(n: string): string;
   addCache(n: string, v: Promise<any>): void;
   getCache(n: string): Promise<any> | undefined;
@@ -145,5 +149,5 @@ export abstract class TextureExtraExtension extends GLTFExtension {
 }
 
 export abstract class BufferViewExtension extends GLTFExtension {
-  abstract loadBufferView(index: number): Promise<ArrayBuffer | void>;
+  abstract loadBufferView(index: number): Promise<ArrayBuffer | undefined>;
 }

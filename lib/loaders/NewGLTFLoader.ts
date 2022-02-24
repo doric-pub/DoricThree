@@ -295,8 +295,8 @@ function parseGLB(data: ArrayBuffer) {
   const chunkContentsLength = header.length - BINARY_EXTENSION_HEADER_LENGTH;
   const chunkView = new DataView(data, BINARY_EXTENSION_HEADER_LENGTH);
   let chunkIndex = 0;
-  let content: string | null = null;
-  let body: ArrayBuffer | null = null;
+  let content: string | undefined = undefined;
+  let body: ArrayBuffer | undefined = undefined;
   while (chunkIndex < chunkContentsLength) {
     const chunkLength = chunkView.getUint32(chunkIndex, true);
     chunkIndex += 4;
@@ -380,6 +380,14 @@ function createDefaultMaterial(): Three.MeshStandardMaterial {
   return defaultMaterial;
 }
 
+type ParseOption = {
+  gltf: GSpec.GLTF;
+  bridgeContext: BridgeContext;
+  path: string;
+  resType: string;
+  body?: ArrayBuffer;
+};
+
 export class GLTFLoader extends Three.Loader {
   context: BridgeContext;
 
@@ -388,36 +396,21 @@ export class GLTFLoader extends Three.Loader {
     this.context = context;
   }
 
-  async loadFile(resource: Resource) {
-    const data = await resourceLoader(this.context).load(resource);
-    return data;
-  }
-
-  async readTexture(resource: Resource) {
-    const imageInfo = await imageDecoder(this.context).getImageInfo(resource);
-    const imagePixels = await imageDecoder(this.context).decodeToPixels(
-      resource
-    );
-    const texture = new Three.DataTexture();
-    texture.format = Three.RGBAFormat;
-    texture.image = {
-      data: new Uint8ClampedArray(imagePixels),
-      width: imageInfo.width,
-      height: imageInfo.height,
-    };
-    texture.needsUpdate = true;
-    return texture;
-  }
   extensions: Record<string, GLTFExtension> = {};
 
   async load(resource: Resource) {
     const url = resource.identifier;
-    const data = await this.loadFile(resource);
+    const data = await resourceLoader(this.context).load(resource);
 
     const magic = Three.LoaderUtils.decodeText(new Uint8Array(data, 0, 4));
     let gltf: GSpec.GLTF;
+    let glbBody: undefined | ArrayBuffer = undefined;
     if (magic === BINARY_EXTENSION_HEADER_MAGIC) {
       const { content, body } = parseGLB(data);
+      glbBody = body;
+      if (!!!content) {
+        throw new Error("THREE.GLTFLoader: Content is empty.");
+      }
       gltf = JSON.parse(content) as GSpec.GLTF;
     } else {
       const content = Three.LoaderUtils.decodeText(new Uint8Array(data));
@@ -428,12 +421,15 @@ export class GLTFLoader extends Three.Loader {
         "THREE.GLTFLoader: Unsupported asset. glTF versions >=2.0 are supported."
       );
     }
+    const gltfParser = new GLTFParser({
+      bridgeContext: this.context,
+      path: "",
+      gltf,
+      resType: resource.type,
+      body: glbBody,
+    });
   }
 }
-type ParseOption = {
-  path: string;
-  resType: string;
-};
 
 function getNormalizedComponentScale(
   constructor: ValueOf<typeof WEBGL_COMPONENT_TYPES>
@@ -461,31 +457,15 @@ function getNormalizedComponentScale(
   }
 }
 class GLTFParser {
-  gltf: GSpec.GLTF;
   textureCache: Record<string, Three.Texture> = {};
   option: ParseOption;
-  context: BridgeContext;
+
   associations: Map<
     Three.Object3D | Three.EventDispatcher,
     { index: number; primitives?: number } | undefined
   > = new Map();
-  cache: Map<
-    string,
-    | Three.Object3D
-    | Three.EventDispatcher
-    | Three.InterleavedBuffer
-    | Three.BufferAttribute
-    | Three.InterleavedBufferAttribute
-    | Three.AnimationClip
-    | ArrayBuffer
-    | {
-        joints: number[];
-        inverseBindMatrices?:
-          | Three.BufferAttribute
-          | Three.InterleavedBufferAttribute
-          | undefined;
-      }
-  > = new Map();
+
+  cache: Map<string, any> = new Map();
 
   meshCache = { refs: {}, uses: {} };
   cameraCache = { refs: {}, uses: {} };
@@ -493,12 +473,71 @@ class GLTFParser {
   extensions: Record<string, GLTFExtension> = {};
   primitiveCache: Record<string, any> = {};
 
-  constructor(context: BridgeContext, gltf: GSpec.GLTF, option: ParseOption) {
-    this.context = context;
-    this.gltf = gltf;
+  constructor(option: ParseOption) {
     this.option = option;
   }
 
+  async parse() {
+    const extensions = Object.values(this.extensions);
+
+    // Clear the loader cache
+    this.cache.clear();
+
+    // Mark the special nodes/meshes in json for efficient parse
+    extensions.forEach((ext) => {
+      ext.markRefs && ext.markRefs();
+    });
+
+    extensions.forEach((ext) => {
+      ext.beforeRoot && ext.beforeRoot();
+    });
+    const dependencies: any = await Promise.all([
+      this.getDependencies("scene"),
+      this.getDependencies("animation"),
+      this.getDependencies("camera"),
+    ]);
+    const result: GLTF = {
+      scene: dependencies[0][this.gltf.scene || 0],
+      scenes: dependencies[0],
+      animations: dependencies[1],
+      cameras: dependencies[2],
+      asset: this.gltf.asset,
+      userData: {},
+    };
+
+    addUnknownExtensionsToUserData(extensions, result, this.gltf);
+
+    assignExtrasToUserData(result, this.gltf);
+    extensions.forEach((ext) => {
+      ext.afterRoot && ext.afterRoot();
+    });
+    return result;
+  }
+  /**
+   * Requests all dependencies of the specified type asynchronously, with caching.
+   * @param {string} type
+   * @return {Promise<Array<Object>>}
+   */
+  async getDependencies(type: string) {
+    let dependencies = this.cache.get(type);
+
+    if (!dependencies) {
+      const defs = this.gltf[type + (type === "mesh" ? "es" : "s")] || [];
+      dependencies = await Promise.all(
+        defs.map((_: any, index: number) => {
+          return this.getDependency(type as GLTFDepsType, index);
+        })
+      );
+
+      this.cache.set(type, dependencies);
+    }
+
+    return dependencies;
+  }
+
+  get gltf() {
+    return this.option.gltf;
+  }
   /**
    * Specification: https://github.com/KhronosGroup/glTF/blob/master/specification/2.0/README.md#accessors
    * @param {number} accessorIndex
@@ -664,12 +703,14 @@ class GLTFParser {
    * @param {number} bufferViewIndex
    * @return {Promise<ArrayBuffer>}
    */
-  async loadBufferView(bufferViewIndex: number) {
+  async loadBufferView(
+    bufferViewIndex: number
+  ): Promise<ArrayBuffer | undefined> {
     const bufferViewDef = this.gltf.bufferViews?.[bufferViewIndex];
     if (!!!bufferViewDef) {
       return;
     }
-    let buffer: ArrayBuffer | void = await this.getDependency<ArrayBuffer>(
+    let buffer: ArrayBuffer | undefined = await this.getDependency<ArrayBuffer>(
       "buffer",
       bufferViewDef.buffer
     );
@@ -709,13 +750,13 @@ class GLTFParser {
 
     // If present, GLB container is required to be the first buffer.
     if (bufferDef.uri === undefined && bufferIndex === 0) {
-      return this.cache.get(`buffer:${bufferIndex}`);
+      return this.option.body;
     }
     const resource = new UnifiedResource(
       this.option.resType,
       Three.LoaderUtils.resolveURL(bufferDef.uri || "", this.option.path)
     );
-    const data = await resourceLoader(this.context).load(resource);
+    const data = await resourceLoader(this.option.bridgeContext).load(resource);
     return data;
   }
 
@@ -1851,7 +1892,7 @@ class GLTFParser {
     return scene;
   }
 
-  async getDependency<T>(type: GLTFDepsType, index: number) {
+  async getDependency<T>(type: GLTFDepsType, index: number): Promise<T> {
     const cacheKey = type + ":" + index;
     let dependency = this.cache.get(cacheKey);
     if (!!!dependency) {
@@ -2213,7 +2254,7 @@ class GLTFParser {
       this.option.path
     );
     const resource = new UnifiedResource(this.option.resType, url);
-    const texture = await loadTexture(this.context, resource);
+    const texture = await loadTexture(this.option.bridgeContext, resource);
     texture.flipY = false;
 
     if (textureDef.name) texture.name = textureDef.name;

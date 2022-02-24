@@ -8,6 +8,30 @@ import * as Three from "three";
  */
 export class GLTFLightsExtension extends AttachmentExtension {
   name = EXTENSIONS.KHR_LIGHTS_PUNCTUAL;
+  // Object3D instance caches
+  cache = { refs: {}, uses: {} };
+
+  markRefs = () => {
+    const nodeDefs = this.gltf.nodes || [];
+    for (
+      let nodeIndex = 0, nodeLength = nodeDefs.length;
+      nodeIndex < nodeLength;
+      nodeIndex++
+    ) {
+      const nodeDef = nodeDefs[nodeIndex];
+
+      if (
+        nodeDef.extensions &&
+        nodeDef.extensions[this.name] &&
+        nodeDef.extensions[this.name].light !== undefined
+      ) {
+        this.context._addNodeRef(
+          this.cache,
+          nodeDef.extensions[this.name].light
+        );
+      }
+    }
+  };
   async createNodeAttachment(index: number) {
     const lightIndex = this.gltf.node?.[index]?.extensions?.[this.name]?.light;
     if (lightIndex === undefined) return undefined;

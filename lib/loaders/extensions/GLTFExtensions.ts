@@ -18,6 +18,39 @@ export const EXTENSIONS = {
   EXT_TEXTURE_WEBP: "EXT_texture_webp",
   EXT_MESHOPT_COMPRESSION: "EXT_meshopt_compression",
 };
+export type GLTFDepsType =
+  | "scene"
+  | "node"
+  | "mesh"
+  | "accessor"
+  | "bufferView"
+  | "buffer"
+  | "material"
+  | "texture"
+  | "skin"
+  | "animation"
+  | "camera";
+
+export const WEBGL_COMPONENT_TYPES = {
+  5120: Int8Array,
+  5121: Uint8Array,
+  5122: Int16Array,
+  5123: Uint16Array,
+  5125: Uint32Array,
+  5126: Float32Array,
+};
+export const ATTRIBUTES: Record<string, string> = {
+  POSITION: "position",
+  NORMAL: "normal",
+  TANGENT: "tangent",
+  TEXCOORD_0: "uv",
+  TEXCOORD_1: "uv2",
+  COLOR_0: "color",
+  WEIGHTS_0: "skinWeight",
+  JOINTS_0: "skinIndex",
+};
+
+export type ValueOf<T> = T[keyof T];
 
 export type GLTFContext = {
   gltf: GSpec.GLTF;
@@ -37,6 +70,7 @@ export type GLTFContext = {
     loader: Three.Loader
   ): Promise<Three.Texture>;
   loadBuffer(index: number): Promise<ArrayBuffer>;
+  getDependency<T>(type: GLTFDepsType, index: number): Promise<T>;
   meshoptDecoder?: {
     ready: () => Promise<void>;
     supported: boolean;
@@ -47,6 +81,13 @@ export type GLTFContext = {
       mode: any,
       filter: any
     ) => Promise<ArrayBuffer>;
+  };
+  dracoLoader?: {
+    decodeDracoFile: (
+      bufferView: ArrayBuffer,
+      threeAttributeMap: Record<string, string>,
+      attributeTypeMap: Record<string, ValueOf<typeof WEBGL_COMPONENT_TYPES>>
+    ) => Promise<Three.BufferGeometry>;
   };
 };
 
@@ -68,7 +109,7 @@ export abstract class GLTFExtension {
 export abstract class PremitiveExtension extends GLTFExtension {
   abstract decodePrimitive(
     primitive: GSpec.MeshPrimitive
-  ): Promise<Three.BufferGeometry>;
+  ): Promise<Three.BufferGeometry | undefined>;
 }
 
 export abstract class AttachmentExtension extends GLTFExtension {

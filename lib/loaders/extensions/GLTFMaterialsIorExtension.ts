@@ -11,16 +11,16 @@ export class GLTFMaterialsIorExtension extends MeshExtension {
     return Three.MeshPhysicalMaterial;
   }
 
-  extendMaterialParams = (
+  extendMaterialParams = async (
     materialIndex: number,
     materialParams: Three.MeshPhysicalMaterialParameters
   ) => {
     const materialDef = this.gltf.materials?.[materialIndex];
     if (!!!materialDef?.extensions?.[this.name]) {
-      return Promise.resolve();
+      return;
     }
     const extension = materialDef.extensions[this.name];
     materialParams.ior = extension.ior !== undefined ? extension.ior : 1.5;
-    return Promise.resolve();
+    return;
   };
 }

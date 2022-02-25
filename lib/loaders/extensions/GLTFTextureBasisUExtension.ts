@@ -38,11 +38,7 @@ export class GLTFTextureBasisUExtension extends TextureExtension {
         return;
       }
     }
-    const ret = await this.context.loadTextureImage(
-      textureIndex,
-      source,
-      loader
-    );
+    const ret = await this.context.loadTextureImage(textureIndex, source);
     return ret;
   }
 }

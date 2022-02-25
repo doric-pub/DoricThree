@@ -58,22 +58,19 @@ export type GLTFContext = {
     cache: { refs: Record<number, number>; uses: Record<number, number> },
     index: number
   ): void;
-  createUniqueName(n: string): string;
   addCache(n: string, v: Promise<any>): void;
   getCache(n: string): Promise<any> | undefined;
   assignTexture(
     materialParams: Three.MaterialParameters,
     mapName: string,
     mapDef: any
-  ): Promise<Three.Texture>;
+  ): Promise<Three.Texture | undefined>;
   ktx2Loader?: Three.Loader;
-  textureLoader: Three.Loader;
   loadTextureImage(
     index: number,
-    source: GSpec.Image,
-    loader: Three.Loader
-  ): Promise<Three.Texture>;
-  loadBuffer(index: number): Promise<ArrayBuffer>;
+    source: GSpec.Image
+  ): Promise<Three.Texture | undefined>;
+  loadBuffer(index: number): Promise<ArrayBuffer | undefined>;
   getDependency<T>(type: GLTFDepsType, index: number): Promise<T>;
   meshoptDecoder?: {
     ready: () => Promise<void>;
@@ -137,7 +134,7 @@ export abstract class MeshExtension extends GLTFExtension {
   extendMaterialParams?: (
     index: number,
     params: Three.MaterialParameters
-  ) => Promise<Three.Texture[]> | Promise<void>;
+  ) => Promise<(Three.Texture | void)[] | void>;
 }
 
 export abstract class TextureExtension extends GLTFExtension {

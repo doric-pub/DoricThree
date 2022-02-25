@@ -5,33 +5,49 @@ import {
   logw,
   Resource,
   resourceLoader,
-  uniqueId,
 } from "doric";
 import * as Three from "three";
 import { UnifiedResource } from "../utils";
+import { createUniqueName } from "./GLTFUtils";
 import { GLTFDracoMeshCompressionExtension } from "./extensions/GLTFDracoMeshCompressionExtension";
 import {
   AttachmentExtension,
   ATTRIBUTES,
   BufferViewExtension,
   EXTENSIONS,
+  GLTFContext,
   GLTFDepsType,
   GLTFExtension,
   MeshExtension,
   ValueOf,
   WEBGL_COMPONENT_TYPES,
 } from "./extensions/GLTFExtensions";
+import { GLTFLightsExtension } from "./extensions/GLTFLightsExtension";
+import { GLTFMaterialsClearcoatExtension } from "./extensions/GLTFMaterialsClearcoatExtension";
+import { GLTFMaterialsIorExtension } from "./extensions/GLTFMaterialsIorExtension";
 import {
   GLTFMaterialsPbrSpecularGlossinessExtension,
   GLTFMeshStandardSGMaterial,
 } from "./extensions/GLTFMaterialsPbrSpecularGlossinessExtension";
+import { GLTFMaterialsSheenExtension } from "./extensions/GLTFMaterialsSheenExtension";
+import { GLTFMaterialsSpecularExtension } from "./extensions/GLTFMaterialsSpecularExtension";
+import { GLTFMaterialsTransmissionExtension } from "./extensions/GLTFMaterialsTransmissionExtension";
 import { GLTFMaterialsUnlitExtension } from "./extensions/GLTFMaterialsUnlitExtension";
+import { GLTFMaterialsVolumeExtension } from "./extensions/GLTFMaterialsVolumeExtension";
+import { GLTFMeshoptCompressionExtension } from "./extensions/GLTFMeshoptCompressionExtension";
+import { GLTFTextureBasisUExtension } from "./extensions/GLTFTextureBasisUExtension";
 import { GLTFTextureTransformExtension } from "./extensions/GLTFTextureTransformExtension";
+import { GLTFTextureWebPExtension } from "./extensions/GLTFTextureWebPExtension";
 import * as GSpec from "./gltf";
 import {
   GLTFCubicSplineInterpolant,
   GLTFCubicSplineQuaternionInterpolant,
 } from "./Interpolation";
+
+export async function loadGLTF(context: BridgeContext, resource: Resource) {
+  const loader = new GLTFLoader(context);
+  return loader.load(resource);
+}
 
 export type GLTF = {
   scene: THREE.Scene;
@@ -244,14 +260,6 @@ function createAttributesKey(attributes: any) {
   return attributesKey;
 }
 
-/** When Object3D instances are targeted by animation, they need unique names. */
-function createUniqueName(originalName?: string) {
-  const sanitizedName = Three.PropertyBinding.sanitizeNodeName(
-    originalName || ""
-  );
-  return uniqueId(sanitizedName);
-}
-
 function createPrimitiveKey(primitiveDef: GSpec.MeshPrimitive) {
   const dracoExtension =
     primitiveDef.extensions &&
@@ -390,13 +398,23 @@ type ParseOption = {
 
 export class GLTFLoader extends Three.Loader {
   context: BridgeContext;
+  extensionTypes: Array<new (context: GLTFContext) => GLTFExtension> = [
+    GLTFMaterialsClearcoatExtension,
+    GLTFTextureBasisUExtension,
+    GLTFTextureWebPExtension,
+    GLTFMaterialsSheenExtension,
+    GLTFMaterialsTransmissionExtension,
+    GLTFMaterialsVolumeExtension,
+    GLTFMaterialsIorExtension,
+    GLTFMaterialsSpecularExtension,
+    GLTFLightsExtension,
+    GLTFMeshoptCompressionExtension, //
+  ];
 
   constructor(context: BridgeContext) {
     super();
     this.context = context;
   }
-
-  extensions: Record<string, GLTFExtension> = {};
 
   async load(resource: Resource) {
     const url = resource.identifier;
@@ -428,6 +446,8 @@ export class GLTFLoader extends Three.Loader {
       resType: resource.type,
       body: glbBody,
     });
+    const extensions = this.extensionTypes.forEach((e) => new e(gltfParser));
+    return gltfParser.parse();
   }
 }
 
@@ -456,7 +476,7 @@ function getNormalizedComponentScale(
       );
   }
 }
-class GLTFParser {
+class GLTFParser implements GLTFContext {
   textureCache: Record<string, Three.Texture> = {};
   option: ParseOption;
 
@@ -475,6 +495,14 @@ class GLTFParser {
 
   constructor(option: ParseOption) {
     this.option = option;
+  }
+
+  addCache(n: string, v: Promise<any>) {
+    this.cache.set(n, v);
+  }
+
+  getCache(n: string) {
+    return this.cache.get(n);
   }
 
   async parse() {

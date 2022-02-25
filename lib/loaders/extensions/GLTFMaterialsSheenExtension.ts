@@ -26,7 +26,7 @@ export class GLTFMaterialsSheenExtension extends MeshExtension {
       return Promise.resolve();
     }
 
-    const pending: Promise<Three.Texture>[] = [];
+    const pending = [];
 
     materialParams.sheenColor = new Three.Color(0, 0, 0);
     materialParams.sheenRoughness = 0;

@@ -18,15 +18,15 @@ export class GLTFMaterialsSpecularExtension extends MeshExtension {
     return Three.MeshPhysicalMaterial;
   }
 
-  extendMaterialParams = (
+  extendMaterialParams = async (
     materialIndex: number,
     materialParams: Three.MeshPhysicalMaterialParameters
   ) => {
     const materialDef = this.gltf.materials?.[materialIndex];
     if (!!!materialDef?.extensions?.[this.name]) {
-      return Promise.resolve();
+      return;
     }
-    const pending: Promise<Three.Texture>[] = [];
+    const pending = [];
 
     const extension = materialDef.extensions[this.name];
 
@@ -59,7 +59,9 @@ export class GLTFMaterialsSpecularExtension extends MeshExtension {
             extension.specularColorTexture
           )
           .then((texture) => {
-            texture.encoding = Three.sRGBEncoding;
+            if (texture) {
+              texture.encoding = Three.sRGBEncoding;
+            }
             return texture;
           })
       );

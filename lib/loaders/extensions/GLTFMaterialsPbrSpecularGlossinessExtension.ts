@@ -218,19 +218,19 @@ export class GLTFMaterialsPbrSpecularGlossinessExtension extends MeshExtension {
     return GLTFMeshStandardSGMaterial;
   }
 
-  extendParams = (
+  extendParams = async (
     params: Three.MeshStandardMaterialParameters,
     materialDef: GSpec.Material
   ) => {
     const pbrSpecularGlossiness = materialDef.extensions?.[this.name];
     if (!!!pbrSpecularGlossiness) {
-      return Promise.resolve();
+      return;
     }
     const materialParams = params as GLTFMeshStandardSGMaterialParams;
     materialParams.color = new Three.Color(1.0, 1.0, 1.0);
     materialParams.opacity = 1.0;
 
-    const pending: Promise<Three.Texture>[] = [];
+    const pending = [];
 
     if (Array.isArray(pbrSpecularGlossiness.diffuseFactor)) {
       const array = pbrSpecularGlossiness.diffuseFactor;

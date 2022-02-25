@@ -18,10 +18,6 @@ export class GLTFTextureWebPExtension extends TextureExtension {
     if (!!!source) {
       return;
     }
-    return this.context.loadTextureImage(
-      textureIndex,
-      source,
-      this.context.textureLoader
-    );
+    return this.context.loadTextureImage(textureIndex, source);
   }
 }

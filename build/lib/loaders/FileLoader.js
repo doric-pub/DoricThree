@@ -5,6 +5,8 @@ const loading = {};
 export class FileLoader extends Loader {
     constructor(context, manager) {
         super(manager);
+        this.responseType = "";
+        this.mimeType = "";
         this.context = context;
     }
     load(res, onLoad, onProgress, onError) {
@@ -78,12 +80,10 @@ export class FileLoader extends Loader {
         this.manager.itemStart(url);
     }
     setResponseType(value) {
-        //@ts-ignore
         this.responseType = value;
         return this;
     }
     setMimeType(value) {
-        //@ts-ignore
         this.mimeType = value;
         return this;
     }

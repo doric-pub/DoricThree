@@ -1,5 +1,6 @@
 import { AttachmentExtension, EXTENSIONS } from "./GLTFExtensions";
 import * as Three from "three";
+import { createUniqueName } from "../GLTFUtils";
 
 /**
  * Punctual Lights Extension
@@ -101,9 +102,7 @@ export class GLTFLightsExtension extends AttachmentExtension {
 
     if (lightDef.intensity !== undefined) ret.intensity = lightDef.intensity;
 
-    ret.name = this.context.createUniqueName(
-      lightDef.name || "light_" + lightIndex
-    );
+    ret.name = createUniqueName(lightDef.name || "light_" + lightIndex);
     dependency = Promise.resolve(ret);
     this.context.addCache(cacheKey, dependency);
     return dependency;

@@ -18,13 +18,13 @@ export class GLTFMaterialsTransmissionExtension extends MeshExtension {
     return Three.MeshPhysicalMaterial;
   }
 
-  extendMaterialParams = (
+  extendMaterialParams = async (
     materialIndex: number,
     materialParams: Three.MeshPhysicalMaterialParameters
   ) => {
     const materialDef = this.gltf.materials?.[materialIndex];
     if (!!!materialDef?.extensions?.[this.name]) {
-      return Promise.resolve();
+      return;
     }
     const pending = [];
 

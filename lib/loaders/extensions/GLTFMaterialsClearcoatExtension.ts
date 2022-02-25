@@ -15,16 +15,16 @@ export class GLTFMaterialsClearcoatExtension extends MeshExtension {
     return Three.MeshPhysicalMaterial;
   }
 
-  extendMaterialParams = (
+  extendMaterialParams = async (
     materialIndex: number,
     materialParams: Three.MeshPhysicalMaterialParameters
   ) => {
     const materialDef = this.gltf.materials?.[materialIndex];
     if (!!!materialDef?.extensions?.[this.name]) {
-      return Promise.resolve();
+      return;
     }
 
-    const pending: Promise<Three.Texture>[] = [];
+    const pending = [];
 
     const extension = materialDef.extensions[this.name];
 

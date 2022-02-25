@@ -25,7 +25,7 @@ export class GLTFMaterialsVolumeExtension extends MeshExtension {
     if (!!!materialDef?.extensions?.[this.name]) {
       return Promise.resolve();
     }
-    const pending: Promise<Three.Texture>[] = [];
+    const pending = [];
 
     const extension = materialDef.extensions[this.name];
     // TODO: check

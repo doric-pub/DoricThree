@@ -33,6 +33,9 @@ export class GLTFMeshoptCompressionExtension extends BufferViewExtension {
         }
       }
       const raw = await this.context.loadBuffer(extensionDef.buffer);
+      if (!!!raw) {
+        throw new Error("THREE.GLTFLoader: load meshopt decoder error");
+      }
       await decoder.ready();
       const byteOffset = extensionDef.byteOffset || 0;
       const byteLength = extensionDef.byteLength || 0;

@@ -30,7 +30,7 @@ import { GLTFCubicSplineInterpolant, GLTFCubicSplineQuaternionInterpolant, } fro
 import { GLTFMeshQuantizationExtension } from "./extensions/GLTFMeshQuantizationExtension";
 const logs = [];
 function log(arg) {
-    logs.push(arg);
+    //logs.push(arg);
 }
 export function loadGLTF(context, resource) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -630,7 +630,7 @@ class GLTFParser {
             if (bufferDef.uri === undefined && bufferIndex === 0) {
                 return this.option.body;
             }
-            const resource = new UnifiedResource(this.option.resType, Three.LoaderUtils.resolveURL(bufferDef.uri || "", this.option.path));
+            const resource = yield Promise.resolve(new UnifiedResource(this.option.resType, Three.LoaderUtils.resolveURL(bufferDef.uri || "", this.option.path)));
             const data = yield resourceLoader(this.option.bridgeContext).load(resource);
             return data;
         });
@@ -862,7 +862,7 @@ class GLTFParser {
             }
             const pending = [];
             primitives.forEach((e) => {
-                if (e.material) {
+                if (e.material !== undefined) {
                     pending.push(this.getDependency("material", e.material));
                 }
                 else {
@@ -874,7 +874,7 @@ class GLTFParser {
             const materials = results.slice(0, results.length - 1);
             const geometries = results[results.length - 1];
             const meshes = [];
-            for (let i = 0, il = geometries.length; i < il; i++) {
+            for (let i = 0; i < geometries.length; i++) {
                 const geometry = geometries[i];
                 const primitive = primitives[i];
                 // 1. create Mesh
@@ -1330,7 +1330,7 @@ class GLTFParser {
                     pending.push(extension.createNodeAttachment(nodeIndex));
                 }
             });
-            const objects = yield Promise.all(pending);
+            const objects = (yield Promise.all(pending)).filter((e) => !!e);
             let node;
             // .isBone isn't in glTF spec. See ._markDefs
             if (nodeDef.isBone === true) {
@@ -1697,7 +1697,6 @@ class GLTFParser {
      */
     assignTexture(materialParams, mapName, mapDef) {
         return __awaiter(this, void 0, void 0, function* () {
-            log("assignTexture " + "texture:" + mapDef.index);
             let texture = yield this.getDependency("texture", mapDef.index);
             // Materials sample aoMap from UV set 1 and other maps from UV set 0 - this can't be configured
             // However, we will copy UV set 0 to UV set 1 on demand for aoMap
@@ -1784,7 +1783,6 @@ class GLTFParser {
 function loadTexture(context, resource) {
     const texture = new Three.DataTexture();
     texture.format = Three.RGBAFormat;
-    texture.needsUpdate = true;
     const ret = Promise.resolve(texture).then((texture) => {
         return Promise.all([
             imageDecoder(context).getImageInfo(resource),

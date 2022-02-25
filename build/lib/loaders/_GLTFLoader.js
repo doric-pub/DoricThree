@@ -7,6 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { loge } from "doric/lib/src/util/log";
 import { AnimationClip, Bone, Box3, BufferAttribute, BufferGeometry, ClampToEdgeWrapping, Color, DirectionalLight, DoubleSide, FrontSide, Group, ImageBitmapLoader, InterleavedBuffer, InterleavedBufferAttribute, Interpolant, InterpolateDiscrete, InterpolateLinear, Line, LineBasicMaterial, LineLoop, LineSegments, LinearFilter, LinearMipmapLinearFilter, LinearMipmapNearestFilter, Loader, LoaderUtils, Material, MathUtils, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, MirroredRepeatWrapping, NearestFilter, NearestMipmapLinearFilter, NearestMipmapNearestFilter, NumberKeyframeTrack, Object3D, OrthographicCamera, PerspectiveCamera, PointLight, Points, PointsMaterial, PropertyBinding, Quaternion, QuaternionKeyframeTrack, RepeatWrapping, Skeleton, SkinnedMesh, Sphere, SpotLight, TangentSpaceNormalMap, Texture, TriangleFanDrawMode, TriangleStripDrawMode, Vector2, Vector3, VectorKeyframeTrack, sRGBEncoding, } from "three";
 import { console } from "../utils";
 import { FileLoader } from "./FileLoader";
@@ -1675,7 +1676,9 @@ class GLTFParser {
             }
             this.cache.add(cacheKey, dependency);
         }
-        return dependency;
+        return dependency.then((ret) => {
+            return ret;
+        });
     }
     /**
      * Requests all dependencies of the specified type asynchronously, with caching.
@@ -2241,6 +2244,7 @@ class GLTFParser {
                 // 1. create Mesh
                 let mesh;
                 const material = materials[i];
+                loge(`Mesh:${meshIndex}:${i}:${material.constructor.name}`);
                 if (primitive.mode === WEBGL_CONSTANTS.TRIANGLES ||
                     primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP ||
                     primitive.mode === WEBGL_CONSTANTS.TRIANGLE_FAN ||
@@ -2636,7 +2640,6 @@ function buildNodeHierarchy(nodeId, parentObject, json, parser) {
         })
             .then(function (jointNodes) {
             node.traverse(function (mesh) {
-                console.error("traverse:", node.constructor.name, nodeId, mesh.constructor.name);
                 if (!mesh.isMesh)
                     return;
                 const bones = [];

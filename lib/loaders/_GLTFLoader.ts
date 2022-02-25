@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { Resource, BridgeContext } from "doric";
+import { loge } from "doric/lib/src/util/log";
 import {
   LoadingManager,
   AnimationClip,
@@ -2310,7 +2311,9 @@ class GLTFParser {
       this.cache.add(cacheKey, dependency);
     }
 
-    return dependency;
+    return dependency.then((ret) => {
+      return ret;
+    });
   }
 
   /**
@@ -3137,7 +3140,7 @@ class GLTFParser {
         let mesh;
 
         const material = materials[i];
-
+        loge(`Mesh:${meshIndex}:${i}:${material.constructor.name}`);
         if (
           primitive.mode === WEBGL_CONSTANTS.TRIANGLES ||
           primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP ||
@@ -3670,12 +3673,6 @@ function buildNodeHierarchy(nodeId, parentObject, json, parser) {
         })
         .then(function (jointNodes) {
           node.traverse(function (mesh) {
-            console.error(
-              "traverse:",
-              node.constructor.name,
-              nodeId,
-              mesh.constructor.name
-            );
             if (!mesh.isMesh) return;
 
             const bones = [];

@@ -837,9 +837,11 @@ class GLTFParser implements GLTFContext {
     if (bufferDef.uri === undefined && bufferIndex === 0) {
       return this.option.body;
     }
-    const resource = new UnifiedResource(
-      this.option.resType,
-      Three.LoaderUtils.resolveURL(bufferDef.uri || "", this.option.path)
+    const resource = await Promise.resolve(
+      new UnifiedResource(
+        this.option.resType,
+        Three.LoaderUtils.resolveURL(bufferDef.uri || "", this.option.path)
+      )
     );
     const data = await resourceLoader(this.option.bridgeContext).load(resource);
     return data;
@@ -1164,7 +1166,7 @@ class GLTFParser implements GLTFContext {
     > = [];
 
     primitives.forEach((e) => {
-      if (e.material) {
+      if (e.material !== undefined) {
         pending.push(
           this.getDependency<Three.Material>("material", e.material)
         );
@@ -1180,7 +1182,7 @@ class GLTFParser implements GLTFContext {
 
     const meshes = [];
 
-    for (let i = 0, il = geometries.length; i < il; i++) {
+    for (let i = 0; i < geometries.length; i++) {
       const geometry = geometries[i];
       const primitive = primitives[i];
 
@@ -1194,7 +1196,6 @@ class GLTFParser implements GLTFContext {
         | Three.Points;
 
       const material = materials[i];
-
       if (
         primitive.mode === WEBGL_CONSTANTS.TRIANGLES ||
         primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP ||
@@ -1797,10 +1798,9 @@ class GLTFParser implements GLTFContext {
         pending.push(extension.createNodeAttachment(nodeIndex));
       }
     });
-    const objects = await Promise.all(pending);
+    const objects = (await Promise.all(pending)).filter((e) => !!e);
 
     let node: Three.Object3D;
-
     // .isBone isn't in glTF spec. See ._markDefs
     if (nodeDef.isBone === true) {
       node = new Three.Bone();
@@ -2285,7 +2285,6 @@ class GLTFParser implements GLTFContext {
     mapName: string,
     mapDef: GSpec.MaterialNormalTextureInfo
   ) {
-    log("assignTexture " + "texture:" + mapDef.index);
     let texture = await this.getDependency<Three.Texture>(
       "texture",
       mapDef.index
@@ -2396,7 +2395,6 @@ class GLTFParser implements GLTFContext {
 function loadTexture(context: BridgeContext, resource: Resource) {
   const texture = new Three.DataTexture();
   texture.format = Three.RGBAFormat;
-  texture.needsUpdate = true;
   const ret = Promise.resolve(texture).then((texture) => {
     return Promise.all([
       imageDecoder(context).getImageInfo(resource),

@@ -84,7 +84,15 @@ class Example extends Panel {
                 this.context,
                 new AssetsResource("threejs/LittlestTokyo/LittlestTokyo.gltf")
               );
-              loge("loaded gltf", gltf.scene.children.length);
+              gltf.scene.traverse((node) => {
+                if (node instanceof THREE.Mesh) {
+                  const material = node.material as THREE.MeshStandardMaterial;
+                  loge("Mesh", node.name, "material", material.name);
+                  if (material.name.indexOf("interiors") >= 0) {
+                    node.visible = false;
+                  }
+                }
+              });
               let mixer: THREE.AnimationMixer;
               const clock = new THREE.Clock();
               function animate() {

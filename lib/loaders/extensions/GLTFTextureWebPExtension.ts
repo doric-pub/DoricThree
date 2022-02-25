@@ -1,3 +1,4 @@
+import { loge } from "doric";
 import { EXTENSIONS, TextureExtension } from "./GLTFExtensions";
 
 /**

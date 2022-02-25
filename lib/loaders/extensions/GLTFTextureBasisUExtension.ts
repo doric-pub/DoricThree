@@ -1,5 +1,6 @@
 import { EXTENSIONS, TextureExtension } from "./GLTFExtensions";
 import { logw } from "doric";
+import { loge } from "doric/lib/src/util/log";
 
 /**
  * BasisU Texture Extension

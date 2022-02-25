@@ -3670,6 +3670,12 @@ function buildNodeHierarchy(nodeId, parentObject, json, parser) {
         })
         .then(function (jointNodes) {
           node.traverse(function (mesh) {
+            console.error(
+              "traverse:",
+              node.constructor.name,
+              nodeId,
+              mesh.constructor.name
+            );
             if (!mesh.isMesh) return;
 
             const bones = [];

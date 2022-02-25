@@ -127,7 +127,7 @@ declare class GLTFParser {
      * @param {number} meshIndex
      * @return {Promise<Group|Mesh|SkinnedMesh>}
      */
-    loadMesh(meshIndex: any): Promise<Group | SkinnedMesh<any, any> | Mesh<any, any> | Points<any, any> | Line<any, any> | LineSegments<any, any> | LineLoop<any, any>>;
+    loadMesh(meshIndex: any): Promise<Group | Points<any, any> | Line<any, any> | Mesh<any, any> | SkinnedMesh<any, any> | LineSegments<any, any> | LineLoop<any, any>>;
     /**
      * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#cameras
      * @param {number} cameraIndex

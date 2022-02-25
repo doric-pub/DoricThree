@@ -84,7 +84,7 @@ class Example extends Panel {
                 this.context,
                 new AssetsResource("threejs/LittlestTokyo/LittlestTokyo.gltf")
               );
-              loge("loaded gltf");
+              loge("loaded gltf", gltf.scene.children.length);
               let mixer: THREE.AnimationMixer;
               const clock = new THREE.Clock();
               function animate() {

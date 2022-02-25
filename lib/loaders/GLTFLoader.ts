@@ -19,6 +19,7 @@ import {
   GLTFDepsType,
   GLTFExtension,
   MeshExtension,
+  TextureExtension,
   ValueOf,
   WEBGL_COMPONENT_TYPES,
 } from "./extensions/GLTFExtensions";
@@ -43,7 +44,11 @@ import {
   GLTFCubicSplineInterpolant,
   GLTFCubicSplineQuaternionInterpolant,
 } from "./Interpolation";
-
+import { GLTFMeshQuantizationExtension } from "./extensions/GLTFMeshQuantizationExtension";
+const logs: string[] = [];
+function log(arg: string) {
+  //logs.push(arg);
+}
 export async function loadGLTF(context: BridgeContext, resource: Resource) {
   const loader = new GLTFLoader(context);
   return loader.load(resource);
@@ -441,12 +446,59 @@ export class GLTFLoader extends Three.Loader {
     }
     const gltfParser = new GLTFParser({
       bridgeContext: this.context,
-      path: "",
+      path: Three.LoaderUtils.extractUrlBase(url),
       gltf,
       resType: resource.type,
       body: glbBody,
     });
-    const extensions = this.extensionTypes.forEach((e) => new e(gltfParser));
+    this.extensionTypes.forEach((e) => {
+      const extension = new e(gltfParser);
+      gltfParser.extensions[extension.name] = extension;
+    });
+
+    if (gltf.extensionsUsed) {
+      for (let i = 0; i < gltf.extensionsUsed.length; ++i) {
+        const extensionName = gltf.extensionsUsed[i];
+        const extensionsRequired = gltf.extensionsRequired || [];
+
+        switch (extensionName) {
+          case EXTENSIONS.KHR_MATERIALS_UNLIT:
+            gltfParser.extensions[extensionName] =
+              new GLTFMaterialsUnlitExtension(gltfParser);
+            break;
+
+          case EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS:
+            gltfParser.extensions[extensionName] =
+              new GLTFMaterialsPbrSpecularGlossinessExtension(gltfParser);
+            break;
+
+          case EXTENSIONS.KHR_DRACO_MESH_COMPRESSION:
+            gltfParser.extensions[extensionName] =
+              new GLTFDracoMeshCompressionExtension(gltfParser);
+            break;
+
+          case EXTENSIONS.KHR_TEXTURE_TRANSFORM:
+            gltfParser.extensions[extensionName] =
+              new GLTFTextureTransformExtension(gltfParser);
+            break;
+
+          case EXTENSIONS.KHR_MESH_QUANTIZATION:
+            gltfParser.extensions[extensionName] =
+              new GLTFMeshQuantizationExtension(gltfParser);
+            break;
+
+          default:
+            if (
+              extensionsRequired.indexOf(extensionName) >= 0 &&
+              gltfParser.extensions[extensionName] === undefined
+            ) {
+              console.warn(
+                'THREE.GLTFLoader: Unknown extension "' + extensionName + '".'
+              );
+            }
+        }
+      }
+    }
     return gltfParser.parse();
   }
 }
@@ -485,7 +537,7 @@ class GLTFParser implements GLTFContext {
     { index: number; primitives?: number } | undefined
   > = new Map();
 
-  cache: Map<string, any> = new Map();
+  cache: Map<string, Promise<any>> = new Map();
 
   meshCache = { refs: {}, uses: {} };
   cameraCache = { refs: {}, uses: {} };
@@ -498,11 +550,14 @@ class GLTFParser implements GLTFContext {
   }
 
   addCache(n: string, v: Promise<any>) {
+    log(`addCache:${n}:${typeof v}`);
     this.cache.set(n, v);
   }
 
   getCache(n: string) {
-    return this.cache.get(n);
+    const v = this.cache.get(n);
+    log(`getCache:${n}:${typeof v}`);
+    return v;
   }
 
   async parse() {
@@ -512,6 +567,7 @@ class GLTFParser implements GLTFContext {
     this.cache.clear();
 
     // Mark the special nodes/meshes in json for efficient parse
+    this._markDefs();
     extensions.forEach((ext) => {
       ext.markRefs && ext.markRefs();
     });
@@ -539,6 +595,9 @@ class GLTFParser implements GLTFContext {
     extensions.forEach((ext) => {
       ext.afterRoot && ext.afterRoot();
     });
+    logs.forEach((e) => {
+      loge(e);
+    });
     return result;
   }
   /**
@@ -547,17 +606,17 @@ class GLTFParser implements GLTFContext {
    * @return {Promise<Array<Object>>}
    */
   async getDependencies(type: string) {
-    let dependencies = this.cache.get(type);
+    let dependencies = this.getCache(type);
 
     if (!dependencies) {
       const defs = this.gltf[type + (type === "mesh" ? "es" : "s")] || [];
-      dependencies = await Promise.all(
+      dependencies = Promise.all(
         defs.map((_: any, index: number) => {
           return this.getDependency(type as GLTFDepsType, index);
         })
       );
 
-      this.cache.set(type, dependencies);
+      this.addCache(type, dependencies);
     }
 
     return dependencies;
@@ -641,11 +700,9 @@ class GLTFParser implements GLTFContext {
         ibSlice +
         ":" +
         accessorDef.count;
-      let ib: Three.InterleavedBuffer | undefined = this.cache.get(
-        ibCacheKey
-      ) as Three.InterleavedBuffer;
-
-      if (!ib) {
+      let ibPromise = this.getCache(ibCacheKey);
+      let ib = !!ibPromise ? await ibPromise : undefined;
+      if (!!!ib) {
         array = new TypedArray(
           bufferView,
           ibSlice * byteStride,
@@ -655,7 +712,7 @@ class GLTFParser implements GLTFContext {
         // Integer parameters to IB/IBA are in array elements, not bytes.
         ib = new Three.InterleavedBuffer(array, byteStride / elementBytes);
 
-        this.cache.set(ibCacheKey, ib);
+        this.addCache(ibCacheKey, ib);
       }
 
       bufferAttribute = new Three.InterleavedBufferAttribute(
@@ -943,8 +1000,8 @@ class GLTFParser implements GLTFContext {
     }
 
     assignExtrasToUserData(geometry, primitiveDef);
-
     this.computeBounds(geometry, primitiveDef);
+    await Promise.all(pending);
     if (primitiveDef.targets !== undefined) {
       return this.addMorphTargets(geometry, primitiveDef.targets);
     } else {
@@ -1149,14 +1206,13 @@ class GLTFParser implements GLTFContext {
           meshDef.isSkinnedMesh === true
             ? new Three.SkinnedMesh(geometry, material)
             : new Three.Mesh(geometry, material);
-
         if (
-          mesh instanceof Three.SkinnedMesh &&
+          (mesh as Three.SkinnedMesh).isSkinnedMesh &&
           !mesh.geometry.attributes.skinWeight.normalized
         ) {
           // we normalize floating point skin weight array to fix malformed assets (see #15319)
           // it's important to skip this for non-float32 data since normalizeSkinWeights assumes non-normalized inputs
-          mesh.normalizeSkinWeights();
+          (mesh as Three.SkinnedMesh).normalizeSkinWeights();
         }
 
         if (primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP) {
@@ -1195,7 +1251,7 @@ class GLTFParser implements GLTFContext {
       if (primitive.extensions)
         addUnknownExtensionsToUserData(extensions, mesh, primitive);
 
-      this.assignFinalMaterial(mesh);
+      await this.assignFinalMaterial(mesh);
 
       meshes.push(mesh);
     }
@@ -1229,7 +1285,7 @@ class GLTFParser implements GLTFContext {
    * be created if necessary, and reused from a cache.
    * @param  {Object3D} mesh Mesh, Line, or Points instance.
    */
-  assignFinalMaterial(
+  async assignFinalMaterial(
     mesh:
       | Three.Mesh
       | Three.LineSegments
@@ -1247,8 +1303,10 @@ class GLTFParser implements GLTFContext {
     if (mesh instanceof Three.Points) {
       const cacheKey =
         "PointsMaterial:" + (material as Three.PointsMaterial).uuid;
-
-      let pointsMaterial = this.cache.get(cacheKey) as Three.PointsMaterial;
+      let pointsMaterialPromise = this.getCache(cacheKey);
+      let pointsMaterial = !!pointsMaterialPromise
+        ? await pointsMaterialPromise
+        : undefined;
 
       if (!pointsMaterial) {
         pointsMaterial = new Three.PointsMaterial();
@@ -1260,14 +1318,16 @@ class GLTFParser implements GLTFContext {
         pointsMaterial.map = (material as Three.PointsMaterial).map;
         pointsMaterial.sizeAttenuation = false; // glTF spec says points should be 1px
 
-        this.cache.set(cacheKey, pointsMaterial);
+        this.addCache(cacheKey, pointsMaterial);
       }
 
       material = pointsMaterial;
     } else if (mesh instanceof Three.Line) {
       const cacheKey = "LineBasicMaterial:" + (material as Three.Material).uuid;
-
-      let lineMaterial = this.cache.get(cacheKey) as Three.LineBasicMaterial;
+      let lineMaterialPromise = this.getCache(cacheKey);
+      let lineMaterial = !!lineMaterialPromise
+        ? await lineMaterialPromise
+        : undefined;
 
       if (!lineMaterial) {
         lineMaterial = new Three.LineBasicMaterial();
@@ -1277,7 +1337,7 @@ class GLTFParser implements GLTFContext {
         );
         lineMaterial.color.copy((material as Three.LineBasicMaterial).color);
 
-        this.cache.set(cacheKey, lineMaterial);
+        this.addCache(cacheKey, lineMaterial);
       }
 
       material = lineMaterial;
@@ -1292,10 +1352,13 @@ class GLTFParser implements GLTFContext {
       if (useDerivativeTangents) cacheKey += "derivative-tangents:";
       if (useVertexColors) cacheKey += "vertex-colors:";
       if (useFlatShading) cacheKey += "flat-shading:";
+      let cachedMaterialPromise = this.getCache(cacheKey);
 
-      let cachedMaterial = this.cache.get(cacheKey) as Three.Material;
+      let cachedMaterial = !!cachedMaterialPromise
+        ? await cachedMaterialPromise
+        : undefined;
 
-      if (!cachedMaterial) {
+      if (!!!cachedMaterial) {
         cachedMaterial = material.clone();
 
         if (useVertexColors) cachedMaterial.vertexColors = true;
@@ -1314,7 +1377,7 @@ class GLTFParser implements GLTFContext {
             ).clearcoatNormalScale.y *= -1;
         }
 
-        this.cache.set(cacheKey, cachedMaterial);
+        this.addCache(cacheKey, cachedMaterial);
 
         this.associations.set(cachedMaterial, this.associations.get(material));
       }
@@ -1800,55 +1863,54 @@ class GLTFParser implements GLTFContext {
     }
     const node = await this.getDependency<Three.Object3D>("node", nodeId);
 
-    if (nodeDef.skin === undefined) return node;
+    if (nodeDef.skin !== undefined) {
+      // build skeleton here as well
+      const skinEntry = await this.getDependency<{
+        joints: number[];
+        inverseBindMatrices?:
+          | Three.BufferAttribute
+          | Three.InterleavedBufferAttribute
+          | undefined;
+      }>("skin", nodeDef.skin);
+      const pendingJoints = [];
 
-    // build skeleton here as well
-    const skinEntry = await this.getDependency<{
-      joints: number[];
-      inverseBindMatrices?:
-        | Three.BufferAttribute
-        | Three.InterleavedBufferAttribute
-        | undefined;
-    }>("skin", nodeDef.skin);
-    const pendingJoints = [];
-
-    for (let i = 0, il = skinEntry.joints.length; i < il; i++) {
-      pendingJoints.push(
-        this.getDependency<Three.Object3D>("node", skinEntry.joints[i])
-      );
-    }
-    const jointNodes = await Promise.all(pendingJoints);
-    node.traverse((mesh) => {
-      if (!(mesh as any).isMesh) return;
-      const bones: Three.Bone[] = [];
-      const boneInverses = [];
-
-      for (let j = 0, jl = jointNodes.length; j < jl; j++) {
-        const jointNode = jointNodes[j];
-
-        if (jointNode) {
-          bones.push(jointNode as Three.Bone);
-
-          const mat = new Three.Matrix4();
-
-          if (skinEntry.inverseBindMatrices !== undefined) {
-            mat.fromArray(skinEntry.inverseBindMatrices.array, j * 16);
-          }
-
-          boneInverses.push(mat);
-        } else {
-          logw(
-            'THREE.GLTFLoader: Joint "%s" could not be found.',
-            skinEntry.joints[j]
-          );
-        }
+      for (let i = 0, il = skinEntry.joints.length; i < il; i++) {
+        pendingJoints.push(
+          this.getDependency<Three.Object3D>("node", skinEntry.joints[i])
+        );
       }
-      (mesh as Three.SkinnedMesh).bind(
-        new Three.Skeleton(bones, boneInverses),
-        mesh.matrixWorld
-      );
-    });
+      const jointNodes = await Promise.all(pendingJoints);
+      node.traverse((mesh) => {
+        if (!(mesh as any).isMesh) return;
+        const bones: Three.Bone[] = [];
+        const boneInverses = [];
 
+        for (let j = 0, jl = jointNodes.length; j < jl; j++) {
+          const jointNode = jointNodes[j];
+
+          if (jointNode) {
+            bones.push(jointNode as Three.Bone);
+
+            const mat = new Three.Matrix4();
+
+            if (skinEntry.inverseBindMatrices !== undefined) {
+              mat.fromArray(skinEntry.inverseBindMatrices.array, j * 16);
+            }
+
+            boneInverses.push(mat);
+          } else {
+            logw(
+              'THREE.GLTFLoader: Joint "%s" could not be found.',
+              skinEntry.joints[j]
+            );
+          }
+        }
+        (mesh as Three.SkinnedMesh).bind(
+          new Three.Skeleton(bones, boneInverses),
+          mesh.matrixWorld
+        );
+      });
+    }
     parentObject.add(node);
 
     const pending: Array<Promise<any>> = [];
@@ -1889,7 +1951,7 @@ class GLTFParser implements GLTFContext {
 
     const pending = [];
 
-    for (let i = 0, il = nodeIds.length; i < il; i++) {
+    for (let i = 0; i < nodeIds.length; i++) {
       pending.push(this.buildNodeHierarchy(nodeIds[i], scene));
     }
     await Promise.all(pending);
@@ -1922,49 +1984,76 @@ class GLTFParser implements GLTFContext {
 
   async getDependency<T>(type: GLTFDepsType, index: number): Promise<T> {
     const cacheKey = type + ":" + index;
-    let dependency = this.cache.get(cacheKey);
+    let dependency = this.getCache(cacheKey);
     if (!!!dependency) {
       switch (type) {
         case "material":
-          dependency = await this.loadMaterial(index);
+          dependency = this.loadMaterial(index);
           break;
         case "texture":
-          dependency = await this.loadTexture(index);
+          log("loadTexture " + cacheKey);
+          dependency = this.loadTexture(index);
+          log("loadTexture end " + cacheKey);
+          if (!!!dependency) {
+            for (const extension of Object.values(this.extensions)) {
+              if (extension instanceof TextureExtension) {
+                dependency = extension.loadTexture(index);
+                if (!!dependency) {
+                  break;
+                }
+              }
+            }
+          }
           break;
         case "buffer":
-          dependency = await this.loadBuffer(index);
+          dependency = this.loadBuffer(index);
           break;
         case "bufferView":
-          dependency = await this.loadBufferView(index);
+          dependency = this.loadBufferView(index);
+          if (!!!dependency) {
+            for (const extension of Object.values(this.extensions)) {
+              if (extension instanceof BufferViewExtension) {
+                dependency = extension.loadBufferView(index);
+                if (!!!dependency) {
+                  break;
+                }
+              }
+            }
+          }
           break;
         case "accessor":
-          dependency = await this.loadAccessor(index);
+          dependency = this.loadAccessor(index);
           break;
         case "mesh":
-          dependency = await this.loadMesh(index);
+          dependency = this.loadMesh(index);
           break;
         case "camera":
-          dependency = await this.loadCamera(index);
+          dependency = this.loadCamera(index);
           break;
         case "skin":
-          dependency = await this.loadSkin(index);
+          dependency = this.loadSkin(index);
           break;
         case "node":
-          dependency = await this.loadNode(index);
+          dependency = this.loadNode(index);
           break;
         case "animation":
-          dependency = await this.loadAnimation(index);
+          dependency = this.loadAnimation(index);
           break;
         case "scene":
-          dependency = await this.loadScene(index);
+          dependency = this.loadScene(index);
           break;
       }
-
       if (!!dependency) {
-        this.cache.set(cacheKey, dependency);
+        this.addCache(cacheKey, dependency);
       }
     }
-    return dependency as unknown as T;
+    const ret = (await dependency) as unknown as T;
+    if (!!!ret) {
+      loge(
+        `THREE.GLTFLoader.GetDependency: Unable to get ${type} at index ${index}`
+      );
+    }
+    return ret;
   }
 
   /**
@@ -2196,6 +2285,7 @@ class GLTFParser implements GLTFContext {
     mapName: string,
     mapDef: GSpec.MaterialNormalTextureInfo
   ) {
+    log("assignTexture " + "texture:" + mapDef.index);
     let texture = await this.getDependency<Three.Texture>(
       "texture",
       mapDef.index
@@ -2203,6 +2293,7 @@ class GLTFParser implements GLTFContext {
     // Materials sample aoMap from UV set 1 and other maps from UV set 0 - this can't be configured
     // However, we will copy UV set 0 to UV set 1 on demand for aoMap
     if (!!!texture) {
+      loge("THREE.GLTFLoader:assignTexture", mapDef.index, "null");
       return;
     }
     if (
@@ -2239,21 +2330,19 @@ class GLTFParser implements GLTFContext {
     }
 
     materialParams[mapName] = texture;
-
     return texture;
   }
 
   async loadTexture(textureIndex: number) {
     const textureDef = this.gltf.textures?.[textureIndex];
-    if (!!!textureDef?.source) {
+    if (textureDef?.source === undefined) {
       return;
     }
     const source = this.gltf.images?.[textureDef.source];
     if (!!!source) {
       return;
     }
-    const texture = await this.loadTextureImage(textureIndex, source);
-    return texture;
+    return this.loadTextureImage(textureIndex, source);
   }
 
   async loadTextureImage(textureIndex: number, source: GSpec.Image) {
@@ -2269,7 +2358,6 @@ class GLTFParser implements GLTFContext {
       // See https://github.com/mrdoob/three.js/issues/21559.
       return this.textureCache[cacheKey];
     }
-
     if (source.uri === undefined) {
       throw new Error(
         "THREE.GLTFLoader: Image " +
@@ -2305,16 +2393,23 @@ class GLTFParser implements GLTFContext {
   }
 }
 
-async function loadTexture(context: BridgeContext, resource: Resource) {
-  const imageInfo = await imageDecoder(context).getImageInfo(resource);
-  const imagePixels = await imageDecoder(context).decodeToPixels(resource);
+function loadTexture(context: BridgeContext, resource: Resource) {
   const texture = new Three.DataTexture();
   texture.format = Three.RGBAFormat;
-  texture.image = {
-    data: new Uint8ClampedArray(imagePixels),
-    width: imageInfo.width,
-    height: imageInfo.height,
-  };
   texture.needsUpdate = true;
-  return texture;
+  const ret = Promise.resolve(texture).then((texture) => {
+    return Promise.all([
+      imageDecoder(context).getImageInfo(resource),
+      imageDecoder(context).decodeToPixels(resource),
+    ]).then(([imageInfo, imagePixels]) => {
+      texture.image = {
+        data: new Uint8ClampedArray(imagePixels),
+        width: imageInfo.width,
+        height: imageInfo.height,
+      };
+      texture.needsUpdate = true;
+      return texture;
+    });
+  });
+  return ret;
 }

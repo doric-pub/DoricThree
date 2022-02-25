@@ -11,19 +11,27 @@ import { imageDecoder, loge, logw, resourceLoader, } from "doric";
 import * as Three from "three";
 import { UnifiedResource } from "../utils";
 import { createUniqueName } from "./GLTFUtils";
-import { AttachmentExtension, ATTRIBUTES, BufferViewExtension, EXTENSIONS, MeshExtension, WEBGL_COMPONENT_TYPES, } from "./extensions/GLTFExtensions";
+import { GLTFDracoMeshCompressionExtension } from "./extensions/GLTFDracoMeshCompressionExtension";
+import { AttachmentExtension, ATTRIBUTES, BufferViewExtension, EXTENSIONS, MeshExtension, TextureExtension, WEBGL_COMPONENT_TYPES, } from "./extensions/GLTFExtensions";
 import { GLTFLightsExtension } from "./extensions/GLTFLightsExtension";
 import { GLTFMaterialsClearcoatExtension } from "./extensions/GLTFMaterialsClearcoatExtension";
 import { GLTFMaterialsIorExtension } from "./extensions/GLTFMaterialsIorExtension";
-import { GLTFMeshStandardSGMaterial, } from "./extensions/GLTFMaterialsPbrSpecularGlossinessExtension";
+import { GLTFMaterialsPbrSpecularGlossinessExtension, GLTFMeshStandardSGMaterial, } from "./extensions/GLTFMaterialsPbrSpecularGlossinessExtension";
 import { GLTFMaterialsSheenExtension } from "./extensions/GLTFMaterialsSheenExtension";
 import { GLTFMaterialsSpecularExtension } from "./extensions/GLTFMaterialsSpecularExtension";
 import { GLTFMaterialsTransmissionExtension } from "./extensions/GLTFMaterialsTransmissionExtension";
+import { GLTFMaterialsUnlitExtension } from "./extensions/GLTFMaterialsUnlitExtension";
 import { GLTFMaterialsVolumeExtension } from "./extensions/GLTFMaterialsVolumeExtension";
 import { GLTFMeshoptCompressionExtension } from "./extensions/GLTFMeshoptCompressionExtension";
 import { GLTFTextureBasisUExtension } from "./extensions/GLTFTextureBasisUExtension";
+import { GLTFTextureTransformExtension } from "./extensions/GLTFTextureTransformExtension";
 import { GLTFTextureWebPExtension } from "./extensions/GLTFTextureWebPExtension";
 import { GLTFCubicSplineInterpolant, GLTFCubicSplineQuaternionInterpolant, } from "./Interpolation";
+import { GLTFMeshQuantizationExtension } from "./extensions/GLTFMeshQuantizationExtension";
+const logs = [];
+function log(arg) {
+    logs.push(arg);
+}
 export function loadGLTF(context, resource) {
     return __awaiter(this, void 0, void 0, function* () {
         const loader = new GLTFLoader(context);
@@ -332,12 +340,48 @@ export class GLTFLoader extends Three.Loader {
             }
             const gltfParser = new GLTFParser({
                 bridgeContext: this.context,
-                path: "",
+                path: Three.LoaderUtils.extractUrlBase(url),
                 gltf,
                 resType: resource.type,
                 body: glbBody,
             });
-            const extensions = this.extensionTypes.forEach((e) => new e(gltfParser));
+            this.extensionTypes.forEach((e) => {
+                const extension = new e(gltfParser);
+                gltfParser.extensions[extension.name] = extension;
+            });
+            if (gltf.extensionsUsed) {
+                for (let i = 0; i < gltf.extensionsUsed.length; ++i) {
+                    const extensionName = gltf.extensionsUsed[i];
+                    const extensionsRequired = gltf.extensionsRequired || [];
+                    switch (extensionName) {
+                        case EXTENSIONS.KHR_MATERIALS_UNLIT:
+                            gltfParser.extensions[extensionName] =
+                                new GLTFMaterialsUnlitExtension(gltfParser);
+                            break;
+                        case EXTENSIONS.KHR_MATERIALS_PBR_SPECULAR_GLOSSINESS:
+                            gltfParser.extensions[extensionName] =
+                                new GLTFMaterialsPbrSpecularGlossinessExtension(gltfParser);
+                            break;
+                        case EXTENSIONS.KHR_DRACO_MESH_COMPRESSION:
+                            gltfParser.extensions[extensionName] =
+                                new GLTFDracoMeshCompressionExtension(gltfParser);
+                            break;
+                        case EXTENSIONS.KHR_TEXTURE_TRANSFORM:
+                            gltfParser.extensions[extensionName] =
+                                new GLTFTextureTransformExtension(gltfParser);
+                            break;
+                        case EXTENSIONS.KHR_MESH_QUANTIZATION:
+                            gltfParser.extensions[extensionName] =
+                                new GLTFMeshQuantizationExtension(gltfParser);
+                            break;
+                        default:
+                            if (extensionsRequired.indexOf(extensionName) >= 0 &&
+                                gltfParser.extensions[extensionName] === undefined) {
+                                console.warn('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                            }
+                    }
+                }
+            }
             return gltfParser.parse();
         });
     }
@@ -370,10 +414,13 @@ class GLTFParser {
         this.option = option;
     }
     addCache(n, v) {
+        log(`addCache:${n}:${typeof v}`);
         this.cache.set(n, v);
     }
     getCache(n) {
-        return this.cache.get(n);
+        const v = this.cache.get(n);
+        log(`getCache:${n}:${typeof v}`);
+        return v;
     }
     parse() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -381,6 +428,7 @@ class GLTFParser {
             // Clear the loader cache
             this.cache.clear();
             // Mark the special nodes/meshes in json for efficient parse
+            this._markDefs();
             extensions.forEach((ext) => {
                 ext.markRefs && ext.markRefs();
             });
@@ -405,6 +453,9 @@ class GLTFParser {
             extensions.forEach((ext) => {
                 ext.afterRoot && ext.afterRoot();
             });
+            logs.forEach((e) => {
+                loge(e);
+            });
             return result;
         });
     }
@@ -415,13 +466,13 @@ class GLTFParser {
      */
     getDependencies(type) {
         return __awaiter(this, void 0, void 0, function* () {
-            let dependencies = this.cache.get(type);
+            let dependencies = this.getCache(type);
             if (!dependencies) {
                 const defs = this.gltf[type + (type === "mesh" ? "es" : "s")] || [];
-                dependencies = yield Promise.all(defs.map((_, index) => {
+                dependencies = Promise.all(defs.map((_, index) => {
                     return this.getDependency(type, index);
                 }));
-                this.cache.set(type, dependencies);
+                this.addCache(type, dependencies);
             }
             return dependencies;
         });
@@ -482,12 +533,13 @@ class GLTFParser {
                     ibSlice +
                     ":" +
                     accessorDef.count;
-                let ib = this.cache.get(ibCacheKey);
-                if (!ib) {
+                let ibPromise = this.getCache(ibCacheKey);
+                let ib = !!ibPromise ? yield ibPromise : undefined;
+                if (!!!ib) {
                     array = new TypedArray(bufferView, ibSlice * byteStride, (accessorDef.count * byteStride) / elementBytes);
                     // Integer parameters to IB/IBA are in array elements, not bytes.
                     ib = new Three.InterleavedBuffer(array, byteStride / elementBytes);
-                    this.cache.set(ibCacheKey, ib);
+                    this.addCache(ibCacheKey, ib);
                 }
                 bufferAttribute = new Three.InterleavedBufferAttribute(ib, itemSize, (byteOffset % byteStride) / elementBytes, normalized);
             }
@@ -688,6 +740,7 @@ class GLTFParser {
             }
             assignExtrasToUserData(geometry, primitiveDef);
             this.computeBounds(geometry, primitiveDef);
+            yield Promise.all(pending);
             if (primitiveDef.targets !== undefined) {
                 return this.addMorphTargets(geometry, primitiveDef.targets);
             }
@@ -836,7 +889,7 @@ class GLTFParser {
                         meshDef.isSkinnedMesh === true
                             ? new Three.SkinnedMesh(geometry, material)
                             : new Three.Mesh(geometry, material);
-                    if (mesh instanceof Three.SkinnedMesh &&
+                    if (mesh.isSkinnedMesh &&
                         !mesh.geometry.attributes.skinWeight.normalized) {
                         // we normalize floating point skin weight array to fix malformed assets (see #15319)
                         // it's important to skip this for non-float32 data since normalizeSkinWeights assumes non-normalized inputs
@@ -871,7 +924,7 @@ class GLTFParser {
                 assignExtrasToUserData(mesh, meshDef);
                 if (primitive.extensions)
                     addUnknownExtensionsToUserData(extensions, mesh, primitive);
-                this.assignFinalMaterial(mesh);
+                yield this.assignFinalMaterial(mesh);
                 meshes.push(mesh);
             }
             for (let i = 0, il = meshes.length; i < il; i++) {
@@ -900,72 +953,83 @@ class GLTFParser {
      * @param  {Object3D} mesh Mesh, Line, or Points instance.
      */
     assignFinalMaterial(mesh) {
-        const geometry = mesh.geometry;
-        let material = mesh.material;
-        const useDerivativeTangents = geometry.attributes.tangent === undefined;
-        const useVertexColors = geometry.attributes.color !== undefined;
-        const useFlatShading = geometry.attributes.normal === undefined;
-        if (mesh instanceof Three.Points) {
-            const cacheKey = "PointsMaterial:" + material.uuid;
-            let pointsMaterial = this.cache.get(cacheKey);
-            if (!pointsMaterial) {
-                pointsMaterial = new Three.PointsMaterial();
-                Three.Material.prototype.copy.call(pointsMaterial, material);
-                pointsMaterial.color.copy(material.color);
-                pointsMaterial.map = material.map;
-                pointsMaterial.sizeAttenuation = false; // glTF spec says points should be 1px
-                this.cache.set(cacheKey, pointsMaterial);
-            }
-            material = pointsMaterial;
-        }
-        else if (mesh instanceof Three.Line) {
-            const cacheKey = "LineBasicMaterial:" + material.uuid;
-            let lineMaterial = this.cache.get(cacheKey);
-            if (!lineMaterial) {
-                lineMaterial = new Three.LineBasicMaterial();
-                Three.Material.prototype.copy.call(lineMaterial, material);
-                lineMaterial.color.copy(material.color);
-                this.cache.set(cacheKey, lineMaterial);
-            }
-            material = lineMaterial;
-        }
-        // Clone the material if it will be modified
-        if (useDerivativeTangents || useVertexColors || useFlatShading) {
-            let cacheKey = "ClonedMaterial:" + material.uuid + ":";
-            if (material instanceof GLTFMeshStandardSGMaterial)
-                cacheKey += "specular-glossiness:";
-            if (useDerivativeTangents)
-                cacheKey += "derivative-tangents:";
-            if (useVertexColors)
-                cacheKey += "vertex-colors:";
-            if (useFlatShading)
-                cacheKey += "flat-shading:";
-            let cachedMaterial = this.cache.get(cacheKey);
-            if (!cachedMaterial) {
-                cachedMaterial = material.clone();
-                if (useVertexColors)
-                    cachedMaterial.vertexColors = true;
-                if (useFlatShading)
-                    cachedMaterial.flatShading = true;
-                if (useDerivativeTangents) {
-                    // https://github.com/mrdoob/three.js/issues/11438#issuecomment-507003995
-                    if (cachedMaterial.normalScale)
-                        cachedMaterial.normalScale.y *= -1;
-                    if (cachedMaterial.clearcoatNormalScale)
-                        cachedMaterial.clearcoatNormalScale.y *= -1;
+        return __awaiter(this, void 0, void 0, function* () {
+            const geometry = mesh.geometry;
+            let material = mesh.material;
+            const useDerivativeTangents = geometry.attributes.tangent === undefined;
+            const useVertexColors = geometry.attributes.color !== undefined;
+            const useFlatShading = geometry.attributes.normal === undefined;
+            if (mesh instanceof Three.Points) {
+                const cacheKey = "PointsMaterial:" + material.uuid;
+                let pointsMaterialPromise = this.getCache(cacheKey);
+                let pointsMaterial = !!pointsMaterialPromise
+                    ? yield pointsMaterialPromise
+                    : undefined;
+                if (!pointsMaterial) {
+                    pointsMaterial = new Three.PointsMaterial();
+                    Three.Material.prototype.copy.call(pointsMaterial, material);
+                    pointsMaterial.color.copy(material.color);
+                    pointsMaterial.map = material.map;
+                    pointsMaterial.sizeAttenuation = false; // glTF spec says points should be 1px
+                    this.addCache(cacheKey, pointsMaterial);
                 }
-                this.cache.set(cacheKey, cachedMaterial);
-                this.associations.set(cachedMaterial, this.associations.get(material));
+                material = pointsMaterial;
             }
-            material = cachedMaterial;
-        }
-        // workarounds for mesh and geometry
-        if (material.aoMap &&
-            geometry.attributes.uv2 === undefined &&
-            geometry.attributes.uv !== undefined) {
-            geometry.setAttribute("uv2", geometry.attributes.uv);
-        }
-        mesh.material = material;
+            else if (mesh instanceof Three.Line) {
+                const cacheKey = "LineBasicMaterial:" + material.uuid;
+                let lineMaterialPromise = this.getCache(cacheKey);
+                let lineMaterial = !!lineMaterialPromise
+                    ? yield lineMaterialPromise
+                    : undefined;
+                if (!lineMaterial) {
+                    lineMaterial = new Three.LineBasicMaterial();
+                    Three.Material.prototype.copy.call(lineMaterial, material);
+                    lineMaterial.color.copy(material.color);
+                    this.addCache(cacheKey, lineMaterial);
+                }
+                material = lineMaterial;
+            }
+            // Clone the material if it will be modified
+            if (useDerivativeTangents || useVertexColors || useFlatShading) {
+                let cacheKey = "ClonedMaterial:" + material.uuid + ":";
+                if (material instanceof GLTFMeshStandardSGMaterial)
+                    cacheKey += "specular-glossiness:";
+                if (useDerivativeTangents)
+                    cacheKey += "derivative-tangents:";
+                if (useVertexColors)
+                    cacheKey += "vertex-colors:";
+                if (useFlatShading)
+                    cacheKey += "flat-shading:";
+                let cachedMaterialPromise = this.getCache(cacheKey);
+                let cachedMaterial = !!cachedMaterialPromise
+                    ? yield cachedMaterialPromise
+                    : undefined;
+                if (!!!cachedMaterial) {
+                    cachedMaterial = material.clone();
+                    if (useVertexColors)
+                        cachedMaterial.vertexColors = true;
+                    if (useFlatShading)
+                        cachedMaterial.flatShading = true;
+                    if (useDerivativeTangents) {
+                        // https://github.com/mrdoob/three.js/issues/11438#issuecomment-507003995
+                        if (cachedMaterial.normalScale)
+                            cachedMaterial.normalScale.y *= -1;
+                        if (cachedMaterial.clearcoatNormalScale)
+                            cachedMaterial.clearcoatNormalScale.y *= -1;
+                    }
+                    this.addCache(cacheKey, cachedMaterial);
+                    this.associations.set(cachedMaterial, this.associations.get(material));
+                }
+                material = cachedMaterial;
+            }
+            // workarounds for mesh and geometry
+            if (material.aoMap &&
+                geometry.attributes.uv2 === undefined &&
+                geometry.attributes.uv !== undefined) {
+                geometry.setAttribute("uv2", geometry.attributes.uv);
+            }
+            mesh.material = material;
+        });
     }
     /**
      * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#cameras
@@ -1327,36 +1391,36 @@ class GLTFParser {
                 throw new Error("buildNodeHierarchy error");
             }
             const node = yield this.getDependency("node", nodeId);
-            if (nodeDef.skin === undefined)
-                return node;
-            // build skeleton here as well
-            const skinEntry = yield this.getDependency("skin", nodeDef.skin);
-            const pendingJoints = [];
-            for (let i = 0, il = skinEntry.joints.length; i < il; i++) {
-                pendingJoints.push(this.getDependency("node", skinEntry.joints[i]));
-            }
-            const jointNodes = yield Promise.all(pendingJoints);
-            node.traverse((mesh) => {
-                if (!mesh.isMesh)
-                    return;
-                const bones = [];
-                const boneInverses = [];
-                for (let j = 0, jl = jointNodes.length; j < jl; j++) {
-                    const jointNode = jointNodes[j];
-                    if (jointNode) {
-                        bones.push(jointNode);
-                        const mat = new Three.Matrix4();
-                        if (skinEntry.inverseBindMatrices !== undefined) {
-                            mat.fromArray(skinEntry.inverseBindMatrices.array, j * 16);
-                        }
-                        boneInverses.push(mat);
-                    }
-                    else {
-                        logw('THREE.GLTFLoader: Joint "%s" could not be found.', skinEntry.joints[j]);
-                    }
+            if (nodeDef.skin !== undefined) {
+                // build skeleton here as well
+                const skinEntry = yield this.getDependency("skin", nodeDef.skin);
+                const pendingJoints = [];
+                for (let i = 0, il = skinEntry.joints.length; i < il; i++) {
+                    pendingJoints.push(this.getDependency("node", skinEntry.joints[i]));
                 }
-                mesh.bind(new Three.Skeleton(bones, boneInverses), mesh.matrixWorld);
-            });
+                const jointNodes = yield Promise.all(pendingJoints);
+                node.traverse((mesh) => {
+                    if (!mesh.isMesh)
+                        return;
+                    const bones = [];
+                    const boneInverses = [];
+                    for (let j = 0, jl = jointNodes.length; j < jl; j++) {
+                        const jointNode = jointNodes[j];
+                        if (jointNode) {
+                            bones.push(jointNode);
+                            const mat = new Three.Matrix4();
+                            if (skinEntry.inverseBindMatrices !== undefined) {
+                                mat.fromArray(skinEntry.inverseBindMatrices.array, j * 16);
+                            }
+                            boneInverses.push(mat);
+                        }
+                        else {
+                            logw('THREE.GLTFLoader: Joint "%s" could not be found.', skinEntry.joints[j]);
+                        }
+                    }
+                    mesh.bind(new Three.Skeleton(bones, boneInverses), mesh.matrixWorld);
+                });
+            }
             parentObject.add(node);
             const pending = [];
             if (nodeDef.children) {
@@ -1392,7 +1456,7 @@ class GLTFParser {
                 addUnknownExtensionsToUserData(extensions, scene, sceneDef);
             const nodeIds = sceneDef.nodes || [];
             const pending = [];
-            for (let i = 0, il = nodeIds.length; i < il; i++) {
+            for (let i = 0; i < nodeIds.length; i++) {
                 pending.push(this.buildNodeHierarchy(nodeIds[i], scene));
             }
             yield Promise.all(pending);
@@ -1420,48 +1484,74 @@ class GLTFParser {
     getDependency(type, index) {
         return __awaiter(this, void 0, void 0, function* () {
             const cacheKey = type + ":" + index;
-            let dependency = this.cache.get(cacheKey);
+            let dependency = this.getCache(cacheKey);
             if (!!!dependency) {
                 switch (type) {
                     case "material":
-                        dependency = yield this.loadMaterial(index);
+                        dependency = this.loadMaterial(index);
                         break;
                     case "texture":
-                        dependency = yield this.loadTexture(index);
+                        log("loadTexture " + cacheKey);
+                        dependency = this.loadTexture(index);
+                        log("loadTexture end " + cacheKey);
+                        if (!!!dependency) {
+                            for (const extension of Object.values(this.extensions)) {
+                                if (extension instanceof TextureExtension) {
+                                    dependency = extension.loadTexture(index);
+                                    if (!!dependency) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                         break;
                     case "buffer":
-                        dependency = yield this.loadBuffer(index);
+                        dependency = this.loadBuffer(index);
                         break;
                     case "bufferView":
-                        dependency = yield this.loadBufferView(index);
+                        dependency = this.loadBufferView(index);
+                        if (!!!dependency) {
+                            for (const extension of Object.values(this.extensions)) {
+                                if (extension instanceof BufferViewExtension) {
+                                    dependency = extension.loadBufferView(index);
+                                    if (!!!dependency) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                         break;
                     case "accessor":
-                        dependency = yield this.loadAccessor(index);
+                        dependency = this.loadAccessor(index);
                         break;
                     case "mesh":
-                        dependency = yield this.loadMesh(index);
+                        dependency = this.loadMesh(index);
                         break;
                     case "camera":
-                        dependency = yield this.loadCamera(index);
+                        dependency = this.loadCamera(index);
                         break;
                     case "skin":
-                        dependency = yield this.loadSkin(index);
+                        dependency = this.loadSkin(index);
                         break;
                     case "node":
-                        dependency = yield this.loadNode(index);
+                        dependency = this.loadNode(index);
                         break;
                     case "animation":
-                        dependency = yield this.loadAnimation(index);
+                        dependency = this.loadAnimation(index);
                         break;
                     case "scene":
-                        dependency = yield this.loadScene(index);
+                        dependency = this.loadScene(index);
                         break;
                 }
                 if (!!dependency) {
-                    this.cache.set(cacheKey, dependency);
+                    this.addCache(cacheKey, dependency);
                 }
             }
-            return dependency;
+            const ret = (yield dependency);
+            if (!!!ret) {
+                loge(`THREE.GLTFLoader.GetDependency: Unable to get ${type} at index ${index}`);
+            }
+            return ret;
         });
     }
     /**
@@ -1607,10 +1697,12 @@ class GLTFParser {
      */
     assignTexture(materialParams, mapName, mapDef) {
         return __awaiter(this, void 0, void 0, function* () {
+            log("assignTexture " + "texture:" + mapDef.index);
             let texture = yield this.getDependency("texture", mapDef.index);
             // Materials sample aoMap from UV set 1 and other maps from UV set 0 - this can't be configured
             // However, we will copy UV set 0 to UV set 1 on demand for aoMap
             if (!!!texture) {
+                loge("THREE.GLTFLoader:assignTexture", mapDef.index, "null");
                 return;
             }
             if (mapDef.texCoord !== undefined &&
@@ -1642,15 +1734,14 @@ class GLTFParser {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const textureDef = (_a = this.gltf.textures) === null || _a === void 0 ? void 0 : _a[textureIndex];
-            if (!!!(textureDef === null || textureDef === void 0 ? void 0 : textureDef.source)) {
+            if ((textureDef === null || textureDef === void 0 ? void 0 : textureDef.source) === undefined) {
                 return;
             }
             const source = (_b = this.gltf.images) === null || _b === void 0 ? void 0 : _b[textureDef.source];
             if (!!!source) {
                 return;
             }
-            const texture = yield this.loadTextureImage(textureIndex, source);
-            return texture;
+            return this.loadTextureImage(textureIndex, source);
         });
     }
     loadTextureImage(textureIndex, source) {
@@ -1691,18 +1782,23 @@ class GLTFParser {
     }
 }
 function loadTexture(context, resource) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const imageInfo = yield imageDecoder(context).getImageInfo(resource);
-        const imagePixels = yield imageDecoder(context).decodeToPixels(resource);
-        const texture = new Three.DataTexture();
-        texture.format = Three.RGBAFormat;
-        texture.image = {
-            data: new Uint8ClampedArray(imagePixels),
-            width: imageInfo.width,
-            height: imageInfo.height,
-        };
-        texture.needsUpdate = true;
-        return texture;
+    const texture = new Three.DataTexture();
+    texture.format = Three.RGBAFormat;
+    texture.needsUpdate = true;
+    const ret = Promise.resolve(texture).then((texture) => {
+        return Promise.all([
+            imageDecoder(context).getImageInfo(resource),
+            imageDecoder(context).decodeToPixels(resource),
+        ]).then(([imageInfo, imagePixels]) => {
+            texture.image = {
+                data: new Uint8ClampedArray(imagePixels),
+                width: imageInfo.width,
+                height: imageInfo.height,
+            };
+            texture.needsUpdate = true;
+            return texture;
+        });
     });
+    return ret;
 }
 //# sourceMappingURL=GLTFLoader.js.map

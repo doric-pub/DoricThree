@@ -7,7 +7,7 @@ import {
   resourceLoader,
 } from "doric";
 import * as Three from "three";
-import { UnifiedResource } from "../utils";
+import { ArrayBufferResource, UnifiedResource } from "../utils";
 import { createUniqueName } from "./GLTFUtils";
 import { GLTFDracoMeshCompressionExtension } from "./extensions/GLTFDracoMeshCompressionExtension";
 import {
@@ -45,13 +45,14 @@ import {
   GLTFCubicSplineQuaternionInterpolant,
 } from "./Interpolation";
 import { GLTFMeshQuantizationExtension } from "./extensions/GLTFMeshQuantizationExtension";
-const logs: string[] = [];
-function log(arg: string) {
-  //logs.push(arg);
-}
-export async function loadGLTF(context: BridgeContext, resource: Resource) {
+
+export async function loadGLTF(
+  context: BridgeContext,
+  resource: Resource,
+  asyncTexture = false
+) {
   const loader = new GLTFLoader(context);
-  return loader.load(resource);
+  return loader.load(resource, asyncTexture);
 }
 
 export type GLTF = {
@@ -61,6 +62,10 @@ export type GLTF = {
   cameras: THREE.Camera[];
   asset: GSpec.Asset;
   userData: {};
+  pendingTextures: {
+    texture: Three.Texture;
+    resource: Resource;
+  }[];
 };
 
 /* BINARY EXTENSION */
@@ -399,6 +404,7 @@ type ParseOption = {
   path: string;
   resType: string;
   body?: ArrayBuffer;
+  asyncTexture?: boolean;
 };
 
 export class GLTFLoader extends Three.Loader {
@@ -421,7 +427,25 @@ export class GLTFLoader extends Three.Loader {
     this.context = context;
   }
 
-  async load(resource: Resource) {
+  async loadTexture(pendingTexture: {
+    texture: Three.Texture;
+    resource: Resource;
+  }) {
+    const { texture, resource } = pendingTexture;
+    return Promise.all([
+      imageDecoder(this.context).getImageInfo(resource),
+      imageDecoder(this.context).decodeToPixels(resource),
+    ]).then(([imageInfo, imagePixels]) => {
+      texture.image = {
+        data: new Uint8ClampedArray(imagePixels),
+        width: imageInfo.width,
+        height: imageInfo.height,
+      };
+      texture.needsUpdate = true;
+      return texture;
+    });
+  }
+  async load(resource: Resource, asyncTexture = false) {
     const url = resource.identifier;
     const data = await resourceLoader(this.context).load(resource);
 
@@ -450,6 +474,7 @@ export class GLTFLoader extends Three.Loader {
       gltf,
       resType: resource.type,
       body: glbBody,
+      asyncTexture,
     });
     this.extensionTypes.forEach((e) => {
       const extension = new e(gltfParser);
@@ -545,19 +570,21 @@ class GLTFParser implements GLTFContext {
   extensions: Record<string, GLTFExtension> = {};
   primitiveCache: Record<string, any> = {};
 
+  pendingTextures: {
+    texture: Three.Texture;
+    resource: Resource;
+  }[] = [];
+
   constructor(option: ParseOption) {
     this.option = option;
   }
 
   addCache(n: string, v: Promise<any>) {
-    log(`addCache:${n}:${typeof v}`);
     this.cache.set(n, v);
   }
 
   getCache(n: string) {
-    const v = this.cache.get(n);
-    log(`getCache:${n}:${typeof v}`);
-    return v;
+    return this.cache.get(n);
   }
 
   async parse() {
@@ -587,6 +614,7 @@ class GLTFParser implements GLTFContext {
       cameras: dependencies[2],
       asset: this.gltf.asset,
       userData: {},
+      pendingTextures: this.pendingTextures,
     };
 
     addUnknownExtensionsToUserData(extensions, result, this.gltf);
@@ -594,9 +622,6 @@ class GLTFParser implements GLTFContext {
     assignExtrasToUserData(result, this.gltf);
     extensions.forEach((ext) => {
       ext.afterRoot && ext.afterRoot();
-    });
-    logs.forEach((e) => {
-      loge(e);
     });
     return result;
   }
@@ -1935,6 +1960,7 @@ class GLTFParser implements GLTFContext {
     const extensions = this.extensions;
     const sceneDef = this.gltf.scenes?.[sceneIndex];
     if (!!!sceneDef) {
+      loge("THREE.GLTFLoader:loadScene", sceneIndex, "null");
       return;
     }
     // Loader returns Group, not Scene.
@@ -1991,9 +2017,7 @@ class GLTFParser implements GLTFContext {
           dependency = this.loadMaterial(index);
           break;
         case "texture":
-          log("loadTexture " + cacheKey);
           dependency = this.loadTexture(index);
-          log("loadTexture end " + cacheKey);
           if (!!!dependency) {
             for (const extension of Object.values(this.extensions)) {
               if (extension instanceof TextureExtension) {
@@ -2357,19 +2381,34 @@ class GLTFParser implements GLTFContext {
       // See https://github.com/mrdoob/three.js/issues/21559.
       return this.textureCache[cacheKey];
     }
-    if (source.uri === undefined) {
-      throw new Error(
-        "THREE.GLTFLoader: Image " +
-          textureIndex +
-          " is missing URI and bufferView"
+    let resource: Resource;
+    if (source.bufferView !== undefined) {
+      const arrayBuffer = await this.getDependency<ArrayBuffer>(
+        "bufferView",
+        source.bufferView
       );
+      if (!!!arrayBuffer) {
+        loge(
+          `THREE.GLTFLoader: Image ${textureIndex} is missing bufferView ${source.bufferView}`
+        );
+        return;
+      }
+      resource = new ArrayBufferResource(arrayBuffer);
+    } else if (source.uri !== undefined) {
+      const url = Three.LoaderUtils.resolveURL(
+        source.uri || "",
+        this.option.path
+      );
+      resource = new UnifiedResource(this.option.resType, url);
+    } else {
+      loge(
+        `THREE.GLTFLoader: Image ${textureIndex} is missing URI and bufferView,source is ${JSON.stringify(
+          source
+        )}`
+      );
+      return;
     }
-    const url = Three.LoaderUtils.resolveURL(
-      source.uri || "",
-      this.option.path
-    );
-    const resource = new UnifiedResource(this.option.resType, url);
-    const texture = await loadTexture(this.option.bridgeContext, resource);
+    const texture = await loadTexture(this, resource);
     texture.flipY = false;
 
     if (textureDef.name) texture.name = textureDef.name;
@@ -2392,22 +2431,29 @@ class GLTFParser implements GLTFContext {
   }
 }
 
-function loadTexture(context: BridgeContext, resource: Resource) {
+function loadTexture(parser: GLTFParser, resource: Resource) {
   const texture = new Three.DataTexture();
   texture.format = Three.RGBAFormat;
-  const ret = Promise.resolve(texture).then((texture) => {
-    return Promise.all([
-      imageDecoder(context).getImageInfo(resource),
-      imageDecoder(context).decodeToPixels(resource),
-    ]).then(([imageInfo, imagePixels]) => {
-      texture.image = {
-        data: new Uint8ClampedArray(imagePixels),
-        width: imageInfo.width,
-        height: imageInfo.height,
-      };
-      texture.needsUpdate = true;
-      return texture;
+  if (parser.option.asyncTexture) {
+    parser.pendingTextures.push({
+      texture,
+      resource,
     });
-  });
-  return ret;
+    return texture;
+  } else {
+    return Promise.resolve(texture).then((texture) => {
+      return Promise.all([
+        imageDecoder(parser.option.bridgeContext).getImageInfo(resource),
+        imageDecoder(parser.option.bridgeContext).decodeToPixels(resource),
+      ]).then(([imageInfo, imagePixels]) => {
+        texture.image = {
+          data: new Uint8ClampedArray(imagePixels),
+          width: imageInfo.width,
+          height: imageInfo.height,
+        };
+        texture.needsUpdate = true;
+        return texture;
+      });
+    });
+  }
 }

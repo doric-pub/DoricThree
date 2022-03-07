@@ -1,4 +1,4 @@
-import { log, loge, logw, Resource } from "doric";
+import { log, loge, logw, Resource, uniqueId } from "doric";
 
 export const console = {
   error: (...args: any) => {
@@ -20,5 +20,19 @@ export class UnifiedResource extends Resource {
       type = "base64";
     }
     super(type, identifier);
+  }
+}
+export class ArrayBufferResource extends Resource {
+  data: ArrayBuffer;
+
+  constructor(data: ArrayBuffer) {
+    super("arrayBuffer", uniqueId("buffer"));
+    this.data = data;
+  }
+
+  toModel() {
+    const ret = super.toModel();
+    (ret as any).data = this.data;
+    return ret;
   }
 }

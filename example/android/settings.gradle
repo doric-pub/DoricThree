@@ -3,3 +3,10 @@ rootProject.name='Example'
 
 include ":lib"
 project(":lib").projectDir = file("../../android")
+
+include ":doric"
+project(":doric").projectDir = file("/Users/pengfei/code/doric/doric-android/doric")
+
+include ":jsc4a"
+project(":jsc4a").projectDir = file("/Users/pengfei/code/JSC4A/lib")
+

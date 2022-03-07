@@ -13,7 +13,8 @@ target 'Example' do
   use_modular_headers!
 
   # Pods for TemplateLibrary
-  pod 'DoricCore', "#{version}"
+  #pod 'DoricCore', "#{version}"
+  pod 'DoricCore', :path => '/Users/pengfei/code/doric'
   pod 'DoricDevkit', "#{version}"
   
   pod 'SDWebImage'

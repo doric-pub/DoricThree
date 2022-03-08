@@ -14,11 +14,13 @@ export class ThreeView extends DangleView {
     this.gl?.endFrame();
     return super.isDirty();
   }
-
-  private addEventListener?: (
+  eventListeners: Record<string, (event: Event) => void> = {};
+  private addEventListener = (
     name: string,
     fn: (event: { pageX: number; pageY: number; pointerType: string }) => void
-  ) => void;
+  ) => {
+    this.eventListeners[name] = fn;
+  };
   constructor() {
     super();
     this.onReady = (gl: DangleWebGLRenderingContext) => {
@@ -60,7 +62,8 @@ export class ThreeView extends DangleView {
     };
   }
   set gesture(v: GestureContainer) {
-    this.addEventListener = (name: string, fn: (event: Event) => void) => {
+    for (const entry of Object.entries(this.eventListeners)) {
+      const [name, fn] = entry;
       if (name === "pointerdown") {
         v.onTouchDown = ({ x, y }) => {
           fn({
@@ -100,6 +103,6 @@ export class ThreeView extends DangleView {
           });
         };
       }
-    };
+    }
   }
 }

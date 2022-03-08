@@ -43,6 +43,10 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
         super();
         this.touchable = true;
         this.transparentBackground = false;
+        this.eventListeners = {};
+        this.addEventListener = (name, fn) => {
+            this.eventListeners[name] = fn;
+        };
         this.onReady = (gl) => {
             var _a;
             if (this.gestureRef && this.gestureRef.current) {
@@ -88,7 +92,8 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
         return super.isDirty();
     }
     set gesture(v) {
-        this.addEventListener = (name, fn) => {
+        for (const entry of Object.entries(this.eventListeners)) {
+            const [name, fn] = entry;
             if (name === "pointerdown") {
                 v.onTouchDown = ({ x, y }) => {
                     fn({
@@ -132,7 +137,7 @@ exports.ThreeView = class ThreeView extends dangle.DangleView {
                     });
                 };
             }
-        };
+        }
     }
 };
 exports.ThreeView = __decorate([

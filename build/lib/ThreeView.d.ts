@@ -8,7 +8,8 @@ export declare class ThreeView extends DangleView {
     gestureRef?: Ref<GestureContainer>;
     transparentBackground: boolean;
     isDirty(): boolean;
-    private addEventListener?;
+    eventListeners: Record<string, (event: Event) => void>;
+    private addEventListener;
     constructor();
     set gesture(v: GestureContainer);
 }

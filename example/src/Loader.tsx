@@ -29,7 +29,7 @@ export class LoaderPanel extends Panel {
   }
   build(root: Group) {
     const ref = createRef<GestureContainer>();
-
+    const threeRef = createRef<ThreeView>();
     <VLayout
       backgroundColor={Color.parse("#bfe3dd")}
       parent={root}
@@ -38,8 +38,8 @@ export class LoaderPanel extends Panel {
     >
       <GestureContainer ref={ref} layoutConfig={layoutConfig().most()}>
         <ThreeView
+          ref={threeRef}
           layoutConfig={layoutConfig().most()}
-          gestureRef={ref}
           transparentBackground={true}
           onInited={async (renderer) => {
             loge("Inited");
@@ -97,6 +97,7 @@ export class LoaderPanel extends Panel {
               await loader.loadTexture(pendingTexture);
               renderer.render(scene, camera);
             }
+            threeRef.current.gestureRef = ref;
             const controls = new OrbitControls(camera, renderer.domElement);
             controls.target.set(0, 0, 0);
             controls.update();

@@ -11,6 +11,10 @@ import {
   ListItem,
   Color,
   navigator,
+  FlowLayout,
+  FlowLayoutItem,
+  VLayout,
+  Image,
 } from "doric";
 import { DemoData } from "./data";
 import { LoaderPanel } from "./Loader";
@@ -21,33 +25,40 @@ class Example extends Panel {
     navbar(context).setTitle("GLTF examples");
   }
   build(root: Group) {
-    <List
+    <FlowLayout
       parent={root}
       layoutConfig={layoutConfig().most()}
       itemCount={DemoData.length}
+      rowSpace={10}
       renderItem={(index) =>
         (
-          <ListItem
-            layoutConfig={layoutConfig().mostWidth().justHeight()}
-            height={50}
-            padding={{ left: 20 }}
-            backgroundColor={
-              index % 2 === 0 ? Color.parse("#ecf0f1") : Color.parse("#95a5a6")
-            }
+          <FlowLayoutItem
+            layoutConfig={layoutConfig().mostWidth().fitHeight()}
+            backgroundColor={Color.parse("#ecf0f1")}
             onClick={() => {
               navigator(this.context).push(LoaderPanel, { extra: { index } });
             }}
           >
-            <Text
-              layoutConfig={layoutConfig()
-                .fit()
-                .configAlignment(Gravity.Center)}
-              textSize={20}
+            <VLayout
+              layoutConfig={layoutConfig().mostWidth().fitHeight()}
+              space={10}
+              padding={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              {DemoData[index].title}
-            </Text>
-          </ListItem>
-        ) as ListItem
+              <Image
+                layoutConfig={layoutConfig().mostWidth().fitHeight()}
+                image={(DemoData[index] as any).screenshot}
+              />
+              <Text
+                layoutConfig={layoutConfig()
+                  .fit()
+                  .configAlignment(Gravity.Center)}
+                textSize={20}
+              >
+                {DemoData[index].title}
+              </Text>
+            </VLayout>
+          </FlowLayoutItem>
+        ) as FlowLayoutItem
       }
     />;
   }

@@ -3,7 +3,6 @@ import {
   Group,
   layoutConfig,
   navbar,
-  AssetsResource,
   VLayout,
   jsx,
   GestureContainer,
@@ -11,6 +10,8 @@ import {
   Gravity,
   Color,
   loge,
+  navigator,
+  modal,
 } from "doric";
 import THREE from "three";
 import { OrbitControls, ThreeView, GLTFLoader } from "doric-three";
@@ -68,18 +69,24 @@ export class LoaderPanel extends Panel {
               light.position.set(5, 10, 2);
               scene.add(light);
             }
-
             const requestAnimationFrame = vsync(
               this.context
             ).requestAnimationFrame;
             loge("start loading gltf");
             const loader = new GLTFLoader(this.context);
+            if (!!!this.data.resource) {
+              modal(this.context).toast("Resource is empty!");
+              navigator(this.context).pop();
+              return;
+            }
             const gltf = await loader.load(this.data.resource, true);
             let mixer: THREE.AnimationMixer;
             const clock = new THREE.Clock();
             const model = gltf.scene;
-            model.position.set(1, 1, 0);
-            //model.scale.set(0.01, 0.01, 0.01);
+            model.position.set(0, 0, 0);
+            const size = new THREE.Vector3();
+            new THREE.Box3().setFromObject(model).getSize(size);
+            model.scale.set(2 / size.x, 2 / size.x, 2 / size.x);
             scene.add(model);
             mixer = new THREE.AnimationMixer(model);
             gltf.animations.forEach((e) => {
@@ -91,7 +98,7 @@ export class LoaderPanel extends Panel {
               renderer.render(scene, camera);
             }
             const controls = new OrbitControls(camera, renderer.domElement);
-            controls.target.set(0, 0.5, 0);
+            controls.target.set(0, 0, 0);
             controls.update();
             controls.enablePan = false;
             controls.enableDamping = true;

@@ -1774,7 +1774,7 @@ class GLTFParser {
                 resource = new ArrayBufferResource(arrayBuffer);
             }
             else if (source.uri !== undefined) {
-                const url = Three.LoaderUtils.resolveURL(source.uri || "", this.option.path);
+                const url = Three.LoaderUtils.resolveURL(decodeURIComponent(source.uri) || "", this.option.path);
                 resource = new UnifiedResource(this.option.resType, url);
             }
             else {

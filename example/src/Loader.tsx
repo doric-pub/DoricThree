@@ -12,6 +12,11 @@ import {
   loge,
   navigator,
   modal,
+  Image,
+  AssetsResource,
+  Text,
+  RotationAnimation,
+  TimingFunction,
 } from "doric";
 import THREE from "three";
 import { OrbitControls, ThreeView, GLTFLoader } from "doric-three";
@@ -28,17 +33,37 @@ export class LoaderPanel extends Panel {
     navbar(this.context).setTitle(this.data.title);
   }
   build(root: Group) {
-    const ref = createRef<GestureContainer>();
+    const gestureRef = createRef<GestureContainer>();
     const threeRef = createRef<ThreeView>();
+    const loadingIconRef = createRef<Image>();
+    const loadingRef = createRef<VLayout>();
     <VLayout
       backgroundColor={Color.parse("#bfe3dd")}
       parent={root}
       layoutConfig={layoutConfig().most()}
       gravity={Gravity.Center}
     >
-      <GestureContainer ref={ref} layoutConfig={layoutConfig().most()}>
+      <GestureContainer ref={gestureRef} layoutConfig={layoutConfig().most()}>
+        <VLayout
+          ref={loadingRef}
+          layoutConfig={layoutConfig().fit().configAlignment(Gravity.Center)}
+          gravity={Gravity.Center}
+          space={20}
+        >
+          <Image
+            ref={loadingIconRef}
+            image={new AssetsResource("icon_loading.png")}
+            layoutConfig={layoutConfig().just()}
+            width={50}
+            height={50}
+          ></Image>
+          <Text textSize={20} textColor={Color.GRAY}>
+            Loading...
+          </Text>
+        </VLayout>
         <ThreeView
           ref={threeRef}
+          gestureRef={gestureRef}
           layoutConfig={layoutConfig().most()}
           transparentBackground={true}
           onInited={async (renderer) => {
@@ -69,6 +94,14 @@ export class LoaderPanel extends Panel {
               light.position.set(5, 10, 2);
               scene.add(light);
             }
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 0, 0);
+            controls.update();
+            controls.enablePan = false;
+            controls.enableDamping = true;
+            controls.minDistance = 1;
+            controls.maxDistance = 100;
+            controls.zoomSpeed = 0.5;
             const requestAnimationFrame = vsync(
               this.context
             ).requestAnimationFrame;
@@ -92,20 +125,6 @@ export class LoaderPanel extends Panel {
             gltf.animations.forEach((e) => {
               mixer.clipAction(e).play();
             });
-            renderer.render(scene, camera);
-            for (let pendingTexture of gltf.pendingTextures) {
-              await loader.loadTexture(pendingTexture);
-              renderer.render(scene, camera);
-            }
-            threeRef.current.gestureRef = ref;
-            const controls = new OrbitControls(camera, renderer.domElement);
-            controls.target.set(0, 0, 0);
-            controls.update();
-            controls.enablePan = false;
-            controls.enableDamping = true;
-            controls.minDistance = 1;
-            controls.maxDistance = 100;
-            controls.zoomSpeed = 0.5;
             function animate() {
               const delta = clock.getDelta();
               mixer.update(delta);
@@ -114,10 +133,25 @@ export class LoaderPanel extends Panel {
               requestAnimationFrame(animate);
             }
             animate();
+            for (let pendingTexture of gltf.pendingTextures) {
+              await loader.loadTexture(pendingTexture);
+              renderer.render(scene, camera);
+            }
+            loadingIconRef.current.stopAnimating(this.context);
+            loadingRef.current.hidden = true;
             loge("end loading gltf");
           }}
         />
       </GestureContainer>
     </VLayout>;
+    const rotationAnimation = new RotationAnimation();
+    rotationAnimation.fromRotation = 0;
+    rotationAnimation.toRotation = 2;
+    rotationAnimation.repeatCount = -1;
+    rotationAnimation.duration = 3000;
+    rotationAnimation.timingFunction = TimingFunction.Linear;
+    this.addOnRenderFinishedCallback(() => {
+      loadingIconRef.current.doAnimation(this.context, rotationAnimation);
+    });
   }
 }

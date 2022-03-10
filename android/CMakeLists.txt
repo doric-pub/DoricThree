@@ -9,6 +9,8 @@ include_directories(src/main/cpp/)
 
 set(LIB_DIR ${CMAKE_CURRENT_LIST_DIR}/src/main/libs)
 
+set(DRACO_DIR ${CMAKE_CURRENT_LIST_DIR}/../third_party/draco)
+
 add_library(draco STATIC IMPORTED)
 
 set_target_properties(draco PROPERTIES
@@ -18,8 +20,8 @@ set_target_properties(draco PROPERTIES
 file(GLOB native_srcs "src/main/cpp/*.cpp")
 
 list(APPEND native_srcs
-        "src/main/cpp/decoder_webidl_wrapper.cc"
-        "src/main/cpp/decoder_webidl_wrapper.h")
+        "${DRACO_DIR}/decoder_webidl_wrapper.cc"
+        "${DRACO_DIR}/decoder_webidl_wrapper.h")
 
 add_library(doric_draco
         SHARED
@@ -27,7 +29,8 @@ add_library(doric_draco
         )
 
 target_include_directories(doric_draco PRIVATE
-        ${LIB_DIR}/include)
+        ${DRACO_DIR}
+        ${DRACO_DIR}/include)
 
 find_library(log-lib
         log

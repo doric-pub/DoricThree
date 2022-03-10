@@ -1,7 +1,7 @@
 import groovy.json.JsonSlurper
 
 def model = new JsonSlurper().parse(new File(project.getProjectDir().parent + File.separator + "package.json"))
-def doricSDKVersion = model.dependencies.doric.replace("^", "").replace(">=","")
+def doricSDKVersion = model.dependencies.doric.replace("^", "").replace(">=", "")
 
 println("Doric Version:" + doricSDKVersion)
 
@@ -28,16 +28,26 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
 
     sourceSets {
         main.assets.srcDirs += "../dist"
     }
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
+        externalNativeBuild {
+            cmake {
+                cppFlags "-DDEBUG"
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
     }
 }
 

@@ -315,18 +315,15 @@ export class GLTFLoader extends Three.Loader {
     loadTexture(pendingTexture) {
         return __awaiter(this, void 0, void 0, function* () {
             const { texture, resource } = pendingTexture;
-            return Promise.all([
-                imageDecoder(this.context).getImageInfo(resource),
-                imageDecoder(this.context).decodeToPixels(resource),
-            ]).then(([imageInfo, imagePixels]) => {
-                texture.image = {
-                    data: new Uint8ClampedArray(imagePixels),
-                    width: imageInfo.width,
-                    height: imageInfo.height,
-                };
-                texture.needsUpdate = true;
-                return texture;
-            });
+            const imageInfo = yield imageDecoder(this.context).getImageInfo(resource);
+            const imagePixels = yield imageDecoder(this.context).decodeToPixels(resource);
+            texture.image = {
+                data: new Uint8ClampedArray(imagePixels),
+                width: imageInfo.width,
+                height: imageInfo.height,
+            };
+            texture.needsUpdate = true;
+            return texture;
         });
     }
     load(resource, asyncTexture = false) {
@@ -426,6 +423,46 @@ class GLTFParser {
         this.extensions = {};
         this.primitiveCache = {};
         this.pendingTextures = [];
+        this.dracoLoader = {
+            decodeDracoFile: (buffer, attributeIDs, attributeTypes) => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                const ret = (yield this.option.bridgeContext.callNative("draco", "decode", {
+                    buffer,
+                    attributeIDs,
+                    attributeTypes,
+                }));
+                const geometry = new Three.BufferGeometry();
+                const dataView = new DataView(ret);
+                let offset = 0;
+                const len = dataView.getUint32(offset);
+                offset += 4;
+                for (let l = 0; l < len; l++) {
+                    const attributeId = dataView.getUint32(offset);
+                    offset += 4;
+                    const name = ((_a = Object.entries(attributeIDs).find(([_, v]) => v === attributeId)) === null || _a === void 0 ? void 0 : _a[0]) || "";
+                    const attributeType = attributeTypes[name];
+                    const arrayType = WEBGL_COMPONENT_TYPES[attributeType];
+                    const bufferLen = dataView.getUint32(offset);
+                    offset += 4;
+                    const arrayBuffer = ret.slice(offset, offset + bufferLen);
+                    const array = new arrayType(arrayBuffer);
+                    offset += bufferLen;
+                    const itemSize = dataView.getUint32(offset);
+                    offset += 4;
+                    const attribute = new Three.BufferAttribute(array, itemSize, false);
+                    geometry.setAttribute(name, attribute);
+                }
+                if (offset != ret.byteLength) {
+                    const bufferLen = dataView.getUint32(offset);
+                    offset += 4;
+                    const arrayBuffer = ret.slice(offset, offset + bufferLen);
+                    offset += bufferLen;
+                    const array = new Uint32Array(arrayBuffer);
+                    geometry.setIndex(new Three.BufferAttribute(array, 1));
+                }
+                return geometry;
+            }),
+        };
         this.option = option;
     }
     addCache(n, v) {
@@ -1800,30 +1837,27 @@ class GLTFParser {
     }
 }
 function loadTexture(parser, resource) {
-    const texture = new Three.DataTexture();
-    texture.format = Three.RGBAFormat;
-    if (parser.option.asyncTexture) {
-        parser.pendingTextures.push({
-            texture,
-            resource,
-        });
-        return texture;
-    }
-    else {
-        return Promise.resolve(texture).then((texture) => {
-            return Promise.all([
-                imageDecoder(parser.option.bridgeContext).getImageInfo(resource),
-                imageDecoder(parser.option.bridgeContext).decodeToPixels(resource),
-            ]).then(([imageInfo, imagePixels]) => {
-                texture.image = {
-                    data: new Uint8ClampedArray(imagePixels),
-                    width: imageInfo.width,
-                    height: imageInfo.height,
-                };
-                texture.needsUpdate = true;
-                return texture;
+    return __awaiter(this, void 0, void 0, function* () {
+        const texture = new Three.DataTexture();
+        texture.format = Three.RGBAFormat;
+        if (parser.option.asyncTexture) {
+            parser.pendingTextures.push({
+                texture,
+                resource,
             });
-        });
-    }
+            return texture;
+        }
+        else {
+            const imageInfo = yield imageDecoder(parser.option.bridgeContext).getImageInfo(resource);
+            const imagePixels = yield imageDecoder(parser.option.bridgeContext).decodeToPixels(resource);
+            texture.image = {
+                data: new Uint8ClampedArray(imagePixels),
+                width: imageInfo.width,
+                height: imageInfo.height,
+            };
+            texture.needsUpdate = true;
+            return texture;
+        }
+    });
 }
 //# sourceMappingURL=GLTFLoader.js.map

@@ -1,5 +1,5 @@
-import { AssetsResource, Resource } from "doric";
-//import models from "../assets/glTF-Sample-Models/2.0/model-index.json";
+import { AssetsResource, RemoteResource, Resource } from "doric";
+import models from "../assets/glTF-Sample-Models/2.0/model-index.json";
 
 export const DemoData = [
   {
@@ -10,27 +10,41 @@ export const DemoData = [
     title: "LittlestTokyo",
     resource: new AssetsResource("threejs/LittlestTokyo/LittlestTokyo.gltf"),
   },
-  // ...models.map((e) => {
-  //   let resource: Resource | undefined = undefined;
-  //   if (e.variants["glTF-Binary"]) {
-  //     resource = new AssetsResource(
-  //       `glTF-Sample-Models/2.0/${e.name}/glTF-Binary/${e.variants["glTF-Binary"]}`
-  //     );
-  //   } else if (e.variants["glTF"]) {
-  //     resource = new AssetsResource(
-  //       `glTF-Sample-Models/2.0/${e.name}/glTF/${e.variants["glTF"]}`
-  //     );
-  //   } else if (e.variants["glTF-Embedded"]) {
-  //     resource = new AssetsResource(
-  //       `glTF-Sample-Models/2.0/${e.name}/glTF-Embedded/${e.variants["glTF-Embedded"]}`
-  //     );
-  //   }
-  //   return {
-  //     title: e.name,
-  //     resource: resource,
-  //     screenshot: new AssetsResource(
-  //       `glTF-Sample-Models/2.0/${e.name}/${e.screenshot}`
-  //     ),
-  //   };
-  // }),
+  {
+    title: "LeePerrySmith",
+    resource: new AssetsResource("threejs/LeePerrySmith/LeePerrySmith.gltf"),
+  },
+  {
+    title: "DracoTest",
+    resource: new RemoteResource(
+      "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/LittlestTokyo.glb"
+    ),
+  },
+  ...models.map((e) => {
+    let resource: Resource | undefined = undefined;
+    if (e.variants["glTF-Draco"]) {
+      resource = new AssetsResource(
+        `glTF-Sample-Models/2.0/${e.name}/glTF-Draco/${e.variants["glTF-Draco"]}`
+      );
+    } else if (e.variants["glTF-Binary"]) {
+      resource = new AssetsResource(
+        `glTF-Sample-Models/2.0/${e.name}/glTF-Binary/${e.variants["glTF-Binary"]}`
+      );
+    } else if (e.variants["glTF"]) {
+      resource = new AssetsResource(
+        `glTF-Sample-Models/2.0/${e.name}/glTF/${e.variants["glTF"]}`
+      );
+    } else if (e.variants["glTF-Embedded"]) {
+      resource = new AssetsResource(
+        `glTF-Sample-Models/2.0/${e.name}/glTF-Embedded/${e.variants["glTF-Embedded"]}`
+      );
+    }
+    return {
+      title: e.name,
+      resource: resource,
+      screenshot: new AssetsResource(
+        `glTF-Sample-Models/2.0/${e.name}/${e.screenshot}`
+      ),
+    };
+  }),
 ];

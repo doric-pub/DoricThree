@@ -39,6 +39,7 @@ export const WEBGL_COMPONENT_TYPES = {
   5125: Uint32Array,
   5126: Float32Array,
 };
+
 export const ATTRIBUTES: Record<string, string> = {
   POSITION: "position",
   NORMAL: "normal",
@@ -86,8 +87,8 @@ export type GLTFContext = {
   dracoLoader?: {
     decodeDracoFile: (
       bufferView: ArrayBuffer,
-      threeAttributeMap: Record<string, string>,
-      attributeTypeMap: Record<string, ValueOf<typeof WEBGL_COMPONENT_TYPES>>
+      threeAttributeMap: Record<string, number>,
+      attributeTypeMap: Record<string, number>
     ) => Promise<Three.BufferGeometry>;
   };
 };

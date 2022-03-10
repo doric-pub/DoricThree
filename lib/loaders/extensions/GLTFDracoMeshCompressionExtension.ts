@@ -1,10 +1,7 @@
-import {
-  EXTENSIONS,
-  PremitiveExtension,
-  ValueOf,
-  WEBGL_COMPONENT_TYPES,
-} from "./GLTFExtensions";
+import { EXTENSIONS, PremitiveExtension } from "./GLTFExtensions";
 import * as GSpec from "../glTF";
+import { loge } from "doric/lib/src/util/log";
+import * as Three from "three";
 
 const ATTRIBUTES: Record<string, string> = {
   POSITION: "position",
@@ -16,6 +13,7 @@ const ATTRIBUTES: Record<string, string> = {
   WEIGHTS_0: "skinWeight",
   JOINTS_0: "skinIndex",
 };
+
 /**
  * DRACO Mesh Compression Extension
  *
@@ -29,35 +27,34 @@ export class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
       throw new Error("THREE.GLTFLoader: No DRACOLoader instance provided.");
     }
     const bufferViewIndex = primitive.extensions[this.name].bufferView;
-    const gltfAttributeMap = primitive.extensions[this.name].attributes;
-    const threeAttributeMap: Record<string, string> = {};
+    const extensionAttributes = primitive.extensions[this.name].attributes;
+    const threeAttributeMap: Record<string, number> = {};
     const attributeNormalizedMap: Record<string, boolean> = {};
-    const attributeTypeMap: Record<
-      string,
-      ValueOf<typeof WEBGL_COMPONENT_TYPES>
-    > = {};
+    const attributeTypeMap: Record<string, number> = {};
 
-    for (const attributeName in gltfAttributeMap) {
-      const threeAttributeName =
+    for (const attributeName in extensionAttributes) {
+      const lowerCaseName =
         ATTRIBUTES[attributeName] || attributeName.toLowerCase();
 
-      threeAttributeMap[threeAttributeName] = gltfAttributeMap[attributeName];
+      threeAttributeMap[lowerCaseName] = extensionAttributes[attributeName];
     }
 
     for (const attributeName in primitive.attributes) {
-      const threeAttributeName =
+      const lowerCaseName =
         ATTRIBUTES[attributeName] || attributeName.toLowerCase();
-
-      if (gltfAttributeMap[attributeName] !== undefined) {
+      if (extensionAttributes[attributeName] !== undefined) {
         const accessorDef =
           this.gltf.accessors?.[primitive.attributes[attributeName]];
         if (!!!accessorDef) {
+          loge(
+            this.name,
+            "error: cannot find accessor ",
+            primitive.attributes[attributeName]
+          );
           continue;
         }
-        const componentType = WEBGL_COMPONENT_TYPES[accessorDef.componentType];
-
-        attributeTypeMap[threeAttributeName] = componentType;
-        attributeNormalizedMap[threeAttributeName] =
+        attributeTypeMap[lowerCaseName] = accessorDef.componentType;
+        attributeNormalizedMap[lowerCaseName] =
           accessorDef?.normalized === true;
       }
     }

@@ -1,5 +1,6 @@
 import { PremitiveExtension } from "./GLTFExtensions";
 import * as GSpec from "../glTF";
+import * as Three from "three";
 /**
  * DRACO Mesh Compression Extension
  *
@@ -7,5 +8,5 @@ import * as GSpec from "../glTF";
  */
 export declare class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     name: string;
-    decodePrimitive(primitive: GSpec.MeshPrimitive): Promise<import("three").BufferGeometry>;
+    decodePrimitive(primitive: GSpec.MeshPrimitive): Promise<Three.BufferGeometry>;
 }

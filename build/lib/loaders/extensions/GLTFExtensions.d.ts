@@ -47,7 +47,7 @@ export declare type GLTFContext = {
         decode: (source: Uint8Array, count: number, stride: number, mode: any, filter: any) => Promise<ArrayBuffer>;
     };
     dracoLoader?: {
-        decodeDracoFile: (bufferView: ArrayBuffer, threeAttributeMap: Record<string, string>, attributeTypeMap: Record<string, ValueOf<typeof WEBGL_COMPONENT_TYPES>>) => Promise<Three.BufferGeometry>;
+        decodeDracoFile: (bufferView: ArrayBuffer, threeAttributeMap: Record<string, number>, attributeTypeMap: Record<string, number>) => Promise<Three.BufferGeometry>;
     };
 };
 export declare abstract class GLTFExtension {

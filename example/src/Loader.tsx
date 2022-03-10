@@ -67,79 +67,85 @@ export class LoaderPanel extends Panel {
           layoutConfig={layoutConfig().most()}
           transparentBackground={true}
           onInited={async (renderer) => {
-            loge("Inited");
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(
-              50,
-              renderer.domElement.width / renderer.domElement.height,
-              1,
-              100
-            );
-            camera.position.set(0, 0, 5);
-            {
-              const skyColor = 0xffffff;
-              const groundColor = 0xffffff; // brownish orange
-              const intensity = 1;
-              const light = new THREE.HemisphereLight(
-                skyColor,
-                groundColor,
-                intensity
+            try {
+              loge("Inited");
+              const scene = new THREE.Scene();
+              const camera = new THREE.PerspectiveCamera(
+                50,
+                renderer.domElement.width / renderer.domElement.height,
+                1,
+                100
               );
-              scene.add(light);
-            }
-            {
-              const color = 0xffffff;
-              const intensity = 1.5;
-              const light = new THREE.DirectionalLight(color, intensity);
-              light.position.set(5, 10, 2);
-              scene.add(light);
-            }
-            const controls = new OrbitControls(camera, renderer.domElement);
-            controls.target.set(0, 0, 0);
-            controls.update();
-            controls.enablePan = false;
-            controls.enableDamping = true;
-            controls.minDistance = 1;
-            controls.maxDistance = 100;
-            controls.zoomSpeed = 0.5;
-            const requestAnimationFrame = vsync(
-              this.context
-            ).requestAnimationFrame;
-            loge("start loading gltf");
-            const loader = new GLTFLoader(this.context);
-            if (!!!this.data.resource) {
-              modal(this.context).toast("Resource is empty!");
-              navigator(this.context).pop();
-              return;
-            }
-            const gltf = await loader.load(this.data.resource, true);
-            let mixer: THREE.AnimationMixer;
-            const clock = new THREE.Clock();
-            const model = gltf.scene;
-            model.position.set(0, 0, 0);
-            const size = new THREE.Vector3();
-            new THREE.Box3().setFromObject(model).getSize(size);
-            model.scale.set(2 / size.x, 2 / size.x, 2 / size.x);
-            scene.add(model);
-            mixer = new THREE.AnimationMixer(model);
-            gltf.animations.forEach((e) => {
-              mixer.clipAction(e).play();
-            });
-            function animate() {
-              const delta = clock.getDelta();
-              mixer.update(delta);
+              camera.position.set(0, 0, 5);
+              {
+                const skyColor = 0xffffff;
+                const groundColor = 0xffffff; // brownish orange
+                const intensity = 1;
+                const light = new THREE.HemisphereLight(
+                  skyColor,
+                  groundColor,
+                  intensity
+                );
+                scene.add(light);
+              }
+              {
+                const color = 0xffffff;
+                const intensity = 1.5;
+                const light = new THREE.DirectionalLight(color, intensity);
+                light.position.set(5, 10, 2);
+                scene.add(light);
+              }
+              const controls = new OrbitControls(camera, renderer.domElement);
+              controls.target.set(0, 0, 0);
               controls.update();
-              renderer.render(scene, camera);
-              requestAnimationFrame(animate);
+              controls.enablePan = false;
+              controls.enableDamping = true;
+              controls.minDistance = 1;
+              controls.maxDistance = 100;
+              controls.zoomSpeed = 0.5;
+              const requestAnimationFrame = vsync(
+                this.context
+              ).requestAnimationFrame;
+              loge("start loading gltf");
+              const loader = new GLTFLoader(this.context);
+              if (!!!this.data.resource) {
+                modal(this.context).toast("Resource is empty!");
+                navigator(this.context).pop();
+                return;
+              }
+              const gltf = await loader.load(this.data.resource, true);
+              let mixer: THREE.AnimationMixer;
+              const clock = new THREE.Clock();
+              const model = gltf.scene;
+              model.position.set(0, 0, 0);
+              const size = new THREE.Vector3();
+              new THREE.Box3().setFromObject(model).getSize(size);
+              model.scale.set(2 / size.x, 2 / size.x, 2 / size.x);
+              scene.add(model);
+              mixer = new THREE.AnimationMixer(model);
+              gltf.animations.forEach((e) => {
+                mixer.clipAction(e).play();
+              });
+              function animate() {
+                const delta = clock.getDelta();
+                mixer.update(delta);
+                controls.update();
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+              }
+              animate();
+              for (let pendingTexture of gltf.pendingTextures) {
+                await loader.loadTexture(pendingTexture);
+                renderer.render(scene, camera);
+              }
+              loadingIconRef.current.stopAnimating(this.context);
+              loadingRef.current.hidden = true;
+              loge("end loading gltf");
+            } catch (e) {
+              if (e instanceof Error) {
+                loge(e.message, e.stack);
+              }
             }
-            animate();
-            for (let pendingTexture of gltf.pendingTextures) {
-              await loader.loadTexture(pendingTexture);
-              renderer.render(scene, camera);
-            }
-            loadingIconRef.current.stopAnimating(this.context);
-            loadingRef.current.hidden = true;
-            loge("end loading gltf");
           }}
         />
       </GestureContainer>

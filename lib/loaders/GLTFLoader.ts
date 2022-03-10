@@ -573,7 +573,59 @@ class GLTFParser implements GLTFContext {
     texture: Three.Texture;
     resource: Resource;
   }[] = [];
+  dracoLoader = {
+    decodeDracoFile: async (
+      buffer: ArrayBuffer,
+      attributeIDs: Record<string, number>,
+      attributeTypes: Record<string, number>
+    ) => {
+      const ret = (await this.option.bridgeContext.callNative(
+        "draco",
+        "decode",
+        {
+          buffer,
+          attributeIDs,
+          attributeTypes,
+        }
+      )) as ArrayBuffer;
+      const geometry = new Three.BufferGeometry();
+      const dataView = new DataView(ret);
+      let offset = 0;
+      const len = dataView.getUint32(offset);
+      offset += 4;
+      for (let l = 0; l < len; l++) {
+        const attributeId = dataView.getUint32(offset);
+        offset += 4;
+        const name =
+          Object.entries(attributeIDs).find(
+            ([_, v]) => v === attributeId
+          )?.[0] || "";
+        const attributeType = attributeTypes[
+          name
+        ] as keyof typeof WEBGL_COMPONENT_TYPES;
 
+        const arrayType = WEBGL_COMPONENT_TYPES[attributeType];
+        const bufferLen = dataView.getUint32(offset);
+        offset += 4;
+        const arrayBuffer = ret.slice(offset, offset + bufferLen);
+        const array = new arrayType(arrayBuffer);
+        offset += bufferLen;
+        const itemSize = dataView.getUint32(offset);
+        offset += 4;
+        const attribute = new Three.BufferAttribute(array, itemSize, false);
+        geometry.setAttribute(name, attribute);
+      }
+      if (offset != ret.byteLength) {
+        const bufferLen = dataView.getUint32(offset);
+        offset += 4;
+        const arrayBuffer = ret.slice(offset, offset + bufferLen);
+        offset += bufferLen;
+        const array = new Uint32Array(arrayBuffer);
+        geometry.setIndex(new Three.BufferAttribute(array, 1));
+      }
+      return geometry;
+    },
+  };
   constructor(option: ParseOption) {
     this.option = option;
   }

@@ -432,18 +432,17 @@ export class GLTFLoader extends Three.Loader {
     resource: Resource;
   }) {
     const { texture, resource } = pendingTexture;
-    return Promise.all([
-      imageDecoder(this.context).getImageInfo(resource),
-      imageDecoder(this.context).decodeToPixels(resource),
-    ]).then(([imageInfo, imagePixels]) => {
-      texture.image = {
-        data: new Uint8ClampedArray(imagePixels),
-        width: imageInfo.width,
-        height: imageInfo.height,
-      };
-      texture.needsUpdate = true;
-      return texture;
-    });
+    const imageInfo = await imageDecoder(this.context).getImageInfo(resource);
+    const imagePixels = await imageDecoder(this.context).decodeToPixels(
+      resource
+    );
+    texture.image = {
+      data: new Uint8ClampedArray(imagePixels),
+      width: imageInfo.width,
+      height: imageInfo.height,
+    };
+    texture.needsUpdate = true;
+    return texture;
   }
   async load(resource: Resource, asyncTexture = false) {
     const url = resource.identifier;
@@ -2431,7 +2430,7 @@ class GLTFParser implements GLTFContext {
   }
 }
 
-function loadTexture(parser: GLTFParser, resource: Resource) {
+async function loadTexture(parser: GLTFParser, resource: Resource) {
   const texture = new Three.DataTexture();
   texture.format = Three.RGBAFormat;
   if (parser.option.asyncTexture) {
@@ -2441,19 +2440,18 @@ function loadTexture(parser: GLTFParser, resource: Resource) {
     });
     return texture;
   } else {
-    return Promise.resolve(texture).then((texture) => {
-      return Promise.all([
-        imageDecoder(parser.option.bridgeContext).getImageInfo(resource),
-        imageDecoder(parser.option.bridgeContext).decodeToPixels(resource),
-      ]).then(([imageInfo, imagePixels]) => {
-        texture.image = {
-          data: new Uint8ClampedArray(imagePixels),
-          width: imageInfo.width,
-          height: imageInfo.height,
-        };
-        texture.needsUpdate = true;
-        return texture;
-      });
-    });
+    const imageInfo = await imageDecoder(
+      parser.option.bridgeContext
+    ).getImageInfo(resource);
+    const imagePixels = await imageDecoder(
+      parser.option.bridgeContext
+    ).decodeToPixels(resource);
+    texture.image = {
+      data: new Uint8ClampedArray(imagePixels),
+      width: imageInfo.width,
+      height: imageInfo.height,
+    };
+    texture.needsUpdate = true;
+    return texture;
   }
 }

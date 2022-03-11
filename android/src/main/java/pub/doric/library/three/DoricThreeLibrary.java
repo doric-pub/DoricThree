@@ -15,6 +15,8 @@
  */
 package pub.doric.library.three;
 
+import com.facebook.soloader.SoLoader;
+
 import java.io.IOException;
 import java.io.InputStream;
 

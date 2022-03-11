@@ -29,7 +29,6 @@ import pub.doric.extension.bridge.DoricMethod;
 import pub.doric.extension.bridge.DoricPlugin;
 import pub.doric.extension.bridge.DoricPromise;
 import pub.doric.plugin.DoricJavaPlugin;
-import pub.doric.utils.DoricLog;
 
 /**
  * @Description: Decode draco data

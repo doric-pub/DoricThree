@@ -6,5 +6,5 @@ export declare class TextureLoader extends Loader {
     load(res: {
         url: string;
         type: string;
-    }, onLoad: Function, onProgress: Function, onError: Function): THREE.DataTexture;
+    }, onLoad: Function, onError: Function): THREE.DataTexture;
 }

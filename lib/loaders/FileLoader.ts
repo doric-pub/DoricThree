@@ -1,4 +1,4 @@
-import { AssetsResource, BridgeContext, Resource, resourceLoader } from "doric";
+import { BridgeContext, Resource, resourceLoader } from "doric";
 import { Cache, Loader, LoadingManager } from "three";
 import { UnifiedResource } from "../utils";
 
@@ -6,13 +6,17 @@ const loading: Record<
   string,
   {
     onLoad: Function;
-    onProgress: Function;
+    onProgress: Function | undefined;
     onError: Function;
   }[]
 > = {};
 
 export class FileLoader extends Loader {
   context: BridgeContext;
+
+  responseType = "";
+  mimeType = "";
+
   constructor(context: BridgeContext, manager?: LoadingManager) {
     super(manager);
     this.context = context;
@@ -21,7 +25,7 @@ export class FileLoader extends Loader {
   load(
     res: { url: string; type: string } | Resource,
     onLoad: Function,
-    onProgress: Function,
+    onProgress: Function | undefined,
     onError: Function
   ) {
     let url = res instanceof Resource ? res.identifier : res.url;
@@ -107,15 +111,11 @@ export class FileLoader extends Loader {
 
     this.manager.itemStart(url);
   }
-
   setResponseType(value: string) {
-    //@ts-ignore
     this.responseType = value;
     return this;
   }
-
   setMimeType(value: string) {
-    //@ts-ignore
     this.mimeType = value;
     return this;
   }

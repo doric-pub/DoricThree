@@ -1,0 +1,1 @@
+{"version":3,"file":"GLTFMeshQuantizationExtension.js","sourceRoot":"","sources":["../../../../lib/loaders/extensions/GLTFMeshQuantizationExtension.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,aAAa,EAAE,MAAM,kBAAkB,CAAC;AAE7D,MAAM,OAAO,6BAA8B,SAAQ,aAAa;IAAhE;;QACE,SAAI,GAAG,UAAU,CAAC,qBAAqB,CAAC;IAC1C,CAAC;CAAA"}

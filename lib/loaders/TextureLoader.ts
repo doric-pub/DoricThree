@@ -12,7 +12,6 @@ export class TextureLoader extends Loader {
   load(
     res: { url: string; type: string },
     onLoad: Function,
-    onProgress: Function,
     onError: Function
   ) {
     let texture = new THREE.DataTexture();

@@ -15,7 +15,7 @@ export class TextureLoader extends Loader {
         super(manager);
         this.context = context;
     }
-    load(res, onLoad, onProgress, onError) {
+    load(res, onLoad, onError) {
         let texture = new THREE.DataTexture();
         texture.format = THREE.RGBAFormat;
         const url = res.url;

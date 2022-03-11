@@ -1,114 +1,149 @@
 import {
-  Panel,
   Group,
   layoutConfig,
   navbar,
-  AssetsResource,
-  VLayout,
-  jsx,
-  GestureContainer,
   createRef,
-  modal,
+  jsx,
   Gravity,
+  Text,
   Color,
-  loge,
+  navigator,
+  FlowLayout,
+  FlowLayoutItem,
+  VLayout,
+  Image,
+  ViewHolder,
+  ViewModel,
+  VMPanel,
+  network,
+  Resource,
+  RemoteResource,
+  ScaleType,
 } from "doric";
-import THREE from "three";
-import { OrbitControls, ThreeView, loadGLTF } from "doric-three";
-import { vsync } from "dangle";
+import { DemoData } from "./data";
+import { LoaderPanel } from "./Loader";
 
-@Entry
-class Example extends Panel {
-  onShow() {
-    navbar(context).setTitle("GLTF");
-  }
+interface ExamplesData {
+  data: typeof DemoData;
+}
+
+class ListVH extends ViewHolder {
+  flowlayoutRef = createRef<FlowLayout>();
   build(root: Group) {
-    const ref = createRef<GestureContainer>();
-    const ref2 = createRef<GestureContainer>();
-
-    <VLayout
-      backgroundColor={Color.parse("#bfe3dd")}
+    <FlowLayout
       parent={root}
       layoutConfig={layoutConfig().most()}
-      gravity={Gravity.Center}
-    >
-      <GestureContainer ref={ref}>
-        <ThreeView
-          layoutConfig={layoutConfig().most()}
-          gestureRef={ref}
-          transparentBackground={true}
-          onInited={async (renderer) => {
-            loge("Inited");
-            try {
-              const scene = new THREE.Scene();
-              const camera = new THREE.PerspectiveCamera(
-                50,
-                renderer.domElement.width / renderer.domElement.height,
-                1,
-                100
-              );
-              camera.position.set(0, 0, 5);
-              {
-                const skyColor = 0xffffff;
-                const groundColor = 0xffffff; // brownish orange
-                const intensity = 1;
-                const light = new THREE.HemisphereLight(
-                  skyColor,
-                  groundColor,
-                  intensity
-                );
-                scene.add(light);
-              }
-              {
-                const color = 0xffffff;
-                const intensity = 1.5;
-                const light = new THREE.DirectionalLight(color, intensity);
-                light.position.set(5, 10, 2);
-                scene.add(light);
-              }
+      rowSpace={10}
+      columnSpace={10}
+      ref={this.flowlayoutRef}
+    />;
+  }
+}
+class ListVM extends ViewModel<ExamplesData, ListVH> {
+  onAttached(state: ExamplesData, vh: ListVH): void {
+    // const url =
+    //   "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0";
+    // network(this.context)
+    //   .get(`${url}/model-index.json`)
+    //   .then((res) => {
+    //     const data = JSON.parse(res.data) as {
+    //       name: string;
+    //       screenshot: string;
+    //       variants: {
+    //         glTF?: string;
+    //         "glTF-Binary"?: string;
+    //         "glTF-Draco"?: string;
+    //         "glTF-Embedded"?: string;
+    //       };
+    //     }[];
+    //     this.updateState((state) => {
+    //       data
+    //         .map((e) => {
+    //           let resource: Resource | undefined = undefined;
+    //           if (e.variants["glTF-Binary"]) {
+    //             resource = new RemoteResource(
+    //               `${url}/${e.name}/glTF-Binary/${e.variants["glTF-Binary"]}`
+    //             );
+    //           } else if (e.variants["glTF"]) {
+    //             resource = new RemoteResource(
+    //               `${url}/${e.name}/glTF/${e.variants["glTF"]}`
+    //             );
+    //           } else if (e.variants["glTF-Embedded"]) {
+    //             resource = new RemoteResource(
+    //               `${url}/${e.name}/glTF-Embedded/${e.variants["glTF-Embedded"]}`
+    //             );
+    //           } else {
+    //             throw new Error("Resource cannot be empty");
+    //           }
+    //           return {
+    //             title: e.name,
+    //             resource: resource,
+    //             screenshot: new RemoteResource(
+    //               `${url}/${e.name}/${e.screenshot}`
+    //             ),
+    //           };
+    //         })
+    //         .forEach((e) => {
+    //           state.data.push(e);
+    //         });
+    //     });
+    //   });
+  }
+  onBind(state: ExamplesData, vh: ListVH): void {
+    vh.flowlayoutRef.current.apply({
+      itemCount: state.data.length,
+      renderItem: (index) =>
+        (
+          <FlowLayoutItem
+            layoutConfig={layoutConfig().mostWidth().fitHeight()}
+            backgroundColor={Color.parse("#ecf0f1")}
+            onClick={() => {
+              navigator(this.context).push(LoaderPanel, { extra: { index } });
+            }}
+          >
+            <VLayout
+              layoutConfig={layoutConfig().mostWidth().fitHeight()}
+              space={10}
+              padding={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Image
+                layoutConfig={layoutConfig().mostWidth().justHeight()}
+                image={(state.data[index] as any).screenshot}
+                scaleType={ScaleType.ScaleAspectFit}
+                height={200}
+              />
+              <Text
+                layoutConfig={layoutConfig()
+                  .fit()
+                  .configAlignment(Gravity.Center)}
+                textSize={20}
+              >
+                {state.data[index].title}
+              </Text>
+            </VLayout>
+          </FlowLayoutItem>
+        ) as FlowLayoutItem,
+    });
+  }
+}
 
-              const controls = new OrbitControls(camera, renderer.domElement);
-              controls.target.set(0, 0.5, 0);
-              //controls.enableZoom = false;
-              controls.update();
-              controls.enablePan = false;
-              controls.enableDamping = true;
-              controls.minDistance = 1;
-              controls.maxDistance = 100;
-              controls.zoomSpeed = 0.5;
-              const requestAnimationFrame = vsync(
-                this.context
-              ).requestAnimationFrame;
-              loge("start loading gltf");
-              const gltf = await loadGLTF(
-                this.context,
-                new AssetsResource("threejs/LittlestTokyo/LittlestTokyo.gltf")
-              );
-              loge("loaded gltf");
-              let mixer: THREE.AnimationMixer;
-              const clock = new THREE.Clock();
-              function animate() {
-                requestAnimationFrame(animate);
-                const delta = clock.getDelta();
-                mixer.update(delta);
-                controls.update();
-                renderer.render(scene, camera);
-              }
-              const model = gltf.scene;
-              model.position.set(1, 1, 0);
-              model.scale.set(0.01, 0.01, 0.01);
-              scene.add(model);
-              mixer = new THREE.AnimationMixer(model);
-              gltf.animations.forEach((e) => {
-                mixer.clipAction(e).play();
-              });
-              animate();
-            } catch (error) {
-              modal(this.context).alert(`${error}`);
-            }
-          }}
-        />
-      </GestureContainer>
-    </VLayout>;
+@Entry
+class ListPanel extends VMPanel<ExamplesData, ListVH> {
+  onShow() {
+    navbar(this.context).setTitle("GLTF examples");
+  }
+
+  getViewModelClass() {
+    return ListVM;
+  }
+
+  getState(): ExamplesData {
+    return {
+      data: DemoData,
+    };
+  }
+
+  getViewHolderClass() {
+    return ListVH;
   }
 }

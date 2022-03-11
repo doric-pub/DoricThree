@@ -7,3 +7,12 @@ export declare const console: {
 export declare class UnifiedResource extends Resource {
     constructor(type: string, identifier: string);
 }
+export declare class ArrayBufferResource extends Resource {
+    data: ArrayBuffer;
+    constructor(data: ArrayBuffer);
+    toModel(): {
+        resId: string;
+        type: string;
+        identifier: string;
+    };
+}

@@ -26,7 +26,7 @@
 // Created by pengfei.zhou on 2022/3/2.
 //
 
-#define  ADB_LOG_TAG    "jsc-jni"
+#define  ADB_LOG_TAG    "doric-draco-jni"
 #ifdef DEBUG
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, ADB_LOG_TAG, __VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, ADB_LOG_TAG, __VA_ARGS__)

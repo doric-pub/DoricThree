@@ -5,8 +5,7 @@
 
 cmake_minimum_required(VERSION 3.6)
 
-include_directories(src/main/cpp/)
-
+###############Draco start###############
 set(DRACO_DIR ${CMAKE_CURRENT_LIST_DIR}/../third_party/draco)
 
 add_library(draco STATIC IMPORTED)
@@ -32,8 +31,26 @@ find_library(log-lib
         atomic
         m)
 
-target_link_libraries(doric_draco
-        ${log-lib}
-        draco
+target_link_libraries(doric_draco ${log-lib} draco)
+
+###############Draco end###############
+
+###############Ktx start###############
+set(KTX_DIR ${CMAKE_CURRENT_LIST_DIR}/../third_party/basis_universal)
+
+file(GLOB ktx_src
+        "${KTX_DIR}/zstd/zstd.h"
+        "${KTX_DIR}/zstd/zstd.c"
+        "${KTX_DIR}/transcoder/*.h"
+        "${KTX_DIR}/transcoder/*.inc"
+        "${KTX_DIR}/transcoder/*.cpp"
         )
 
+add_library(doric_ktx
+        SHARED
+        ${ktx_src}
+        "src/main/cpp/native-lib-ktx.cpp")
+
+
+target_link_libraries(doric_ktx ${log-lib})
+###############Ktx end###############

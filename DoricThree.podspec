@@ -14,8 +14,23 @@ This is a extension library that allows developers use three.js library in doric
   
     s.ios.deployment_target = '10.0'
   
-    s.source_files = 'iOS/Classes/**/*'
-    s.resource     =  "dist/**/*"
-    s.public_header_files = 'iOS/Classes/**/*.h'
-    s.dependency 'DoricCore'
+    s.subspec 'Draco' do |ss|
+        ss.source_files = "third_party/draco/include/**/*.{h,cc}"
+        ss.vendored_libraries = "third_party/draco/iOS/libdraco.a"
+        ss.pod_target_xcconfig = { 
+                "HEADER_SEARCH_PATHS" => File.dirname(__FILE__) + "/third_party/draco/include/**",
+                'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64'
+        }
+        ss.public_header_files = "third_party/draco/decoder_webidl_wrapper.h"
+        ss.private_header_files = "third_party/draco/include/**/*.h"
+        ss.header_mappings_dir = "third_party/draco/include"
+        ss.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'arm64' }
+    end
+    s.subspec 'Main' do |ss|
+        ss.source_files = 'iOS/Classes/**/*'
+        ss.public_header_files = 'iOS/Classes/**/*.h'
+        ss.resource     =  "dist/**/*"
+        ss.dependency 'DoricThree/Draco'
+        ss.dependency 'DoricCore'
+    end
 end

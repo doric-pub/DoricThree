@@ -2,7 +2,7 @@
 
 #include <android/log.h>
 
-#include "decoder_webidl_wrapper.h"
+#include "draco/javascript/emscripten/decoder_webidl_wrapper.h"
 
 #include "draco/core/cycle_timer.h"
 

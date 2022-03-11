@@ -14,14 +14,13 @@ set(DRACO_DIR ${CMAKE_CURRENT_LIST_DIR}/../third_party/draco)
 add_library(draco STATIC IMPORTED)
 
 set_target_properties(draco PROPERTIES
-        IMPORTED_LOCATION ${LIB_DIR}/${ANDROID_ABI}/libdraco.a
+        IMPORTED_LOCATION ${DRACO_DIR}/android/${ANDROID_ABI}/libdraco.a
         )
 
 file(GLOB native_srcs "src/main/cpp/*.cpp")
 
 list(APPEND native_srcs
-        "${DRACO_DIR}/decoder_webidl_wrapper.cc"
-        "${DRACO_DIR}/decoder_webidl_wrapper.h")
+        "${DRACO_DIR}/include/draco/javascript/emscripten/decoder_webidl_wrapper.cc")
 
 add_library(doric_draco
         SHARED

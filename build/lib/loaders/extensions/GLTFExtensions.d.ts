@@ -1,5 +1,6 @@
 import * as GSpec from "../glTF";
 import * as Three from "three";
+import { BridgeContext } from "doric";
 export declare const EXTENSIONS: {
     KHR_DRACO_MESH_COMPRESSION: string;
     KHR_LIGHTS_PUNCTUAL: string;
@@ -30,6 +31,7 @@ export declare const ATTRIBUTES: Record<string, string>;
 export declare type ValueOf<T> = T[keyof T];
 export declare type GLTFContext = {
     gltf: GSpec.GLTF;
+    bridgeContext: BridgeContext;
     _addNodeRef(cache: {
         refs: Record<number, number>;
         uses: Record<number, number>;
@@ -37,7 +39,6 @@ export declare type GLTFContext = {
     addCache(n: string, v: Promise<any>): void;
     getCache(n: string): Promise<any> | undefined;
     assignTexture(materialParams: Three.MaterialParameters, mapName: string, mapDef: any): Promise<Three.Texture | undefined>;
-    ktx2Loader?: Three.Loader;
     loadTextureImage(index: number, source: GSpec.Image): Promise<Three.Texture | undefined>;
     loadBuffer(index: number): Promise<ArrayBuffer | undefined>;
     getDependency<T>(type: GLTFDepsType, index: number): Promise<T>;
@@ -45,9 +46,6 @@ export declare type GLTFContext = {
         ready: () => Promise<void>;
         supported: boolean;
         decode: (source: Uint8Array, count: number, stride: number, mode: any, filter: any) => Promise<ArrayBuffer>;
-    };
-    dracoLoader?: {
-        decodeDracoFile: (bufferView: ArrayBuffer, threeAttributeMap: Record<string, number>, attributeTypeMap: Record<string, number>) => Promise<Three.BufferGeometry>;
     };
 };
 export declare abstract class GLTFExtension {

@@ -31,18 +31,7 @@ export class GLTFTextureBasisUExtension extends TextureExtension {
             if (!!!source) {
                 return;
             }
-            const loader = this.context.ktx2Loader;
-            if (!loader) {
-                if (this.gltf.extensionsRequired &&
-                    this.gltf.extensionsRequired.indexOf(this.name) >= 0) {
-                    throw new Error("THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures");
-                }
-                else {
-                    logw("THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures");
-                    // Assumes that the extension is optional and that a fallback texture is present
-                    return;
-                }
-            }
+            logw("THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures");
             const ret = yield this.context.loadTextureImage(textureIndex, source);
             return ret;
         });

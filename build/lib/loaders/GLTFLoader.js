@@ -423,47 +423,10 @@ class GLTFParser {
         this.extensions = {};
         this.primitiveCache = {};
         this.pendingTextures = [];
-        this.dracoLoader = {
-            decodeDracoFile: (buffer, attributeIDs, attributeTypes) => __awaiter(this, void 0, void 0, function* () {
-                var _a;
-                const ret = (yield this.option.bridgeContext.callNative("draco", "decode", {
-                    buffer,
-                    attributeIDs,
-                    attributeTypes,
-                }));
-                const geometry = new Three.BufferGeometry();
-                const dataView = new DataView(ret);
-                let offset = 0;
-                const len = dataView.getUint32(offset);
-                offset += 4;
-                for (let l = 0; l < len; l++) {
-                    const attributeId = dataView.getUint32(offset);
-                    offset += 4;
-                    const name = ((_a = Object.entries(attributeIDs).find(([_, v]) => v === attributeId)) === null || _a === void 0 ? void 0 : _a[0]) || "";
-                    const attributeType = attributeTypes[name];
-                    const arrayType = WEBGL_COMPONENT_TYPES[attributeType];
-                    const bufferLen = dataView.getUint32(offset);
-                    offset += 4;
-                    const arrayBuffer = ret.slice(offset, offset + bufferLen);
-                    const array = new arrayType(arrayBuffer);
-                    offset += bufferLen;
-                    const itemSize = dataView.getUint32(offset);
-                    offset += 4;
-                    const attribute = new Three.BufferAttribute(array, itemSize, false);
-                    geometry.setAttribute(name, attribute);
-                }
-                if (offset != ret.byteLength) {
-                    const bufferLen = dataView.getUint32(offset);
-                    offset += 4;
-                    const arrayBuffer = ret.slice(offset, offset + bufferLen);
-                    offset += bufferLen;
-                    const array = new Uint32Array(arrayBuffer);
-                    geometry.setIndex(new Three.BufferAttribute(array, 1));
-                }
-                return geometry;
-            }),
-        };
         this.option = option;
+    }
+    get bridgeContext() {
+        return this.option.bridgeContext;
     }
     addCache(n, v) {
         this.cache.set(n, v);
@@ -1540,16 +1503,6 @@ class GLTFParser {
                         break;
                     case "texture":
                         dependency = this.loadTexture(index);
-                        if (!!!dependency) {
-                            for (const extension of Object.values(this.extensions)) {
-                                if (extension instanceof TextureExtension) {
-                                    dependency = extension.loadTexture(index);
-                                    if (!!dependency) {
-                                        break;
-                                    }
-                                }
-                            }
-                        }
                         break;
                     case "buffer":
                         dependency = this.loadBuffer(index);
@@ -1780,7 +1733,16 @@ class GLTFParser {
         return __awaiter(this, void 0, void 0, function* () {
             const textureDef = (_a = this.gltf.textures) === null || _a === void 0 ? void 0 : _a[textureIndex];
             if ((textureDef === null || textureDef === void 0 ? void 0 : textureDef.source) === undefined) {
-                return;
+                let dependency;
+                for (const extension of Object.values(this.extensions)) {
+                    if (extension instanceof TextureExtension) {
+                        dependency = extension.loadTexture(textureIndex);
+                        if (!!dependency) {
+                            break;
+                        }
+                    }
+                }
+                return dependency;
             }
             const source = (_b = this.gltf.images) === null || _b === void 0 ? void 0 : _b[textureDef.source];
             if (!!!source) {

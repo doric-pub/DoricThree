@@ -7,8 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { EXTENSIONS, PremitiveExtension } from "./GLTFExtensions";
+import { EXTENSIONS, PremitiveExtension, WEBGL_COMPONENT_TYPES, } from "./GLTFExtensions";
 import { loge } from "doric/lib/src/util/log";
+import * as Three from "three";
 const ATTRIBUTES = {
     POSITION: "position",
     NORMAL: "normal",
@@ -32,9 +33,6 @@ export class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     decodePrimitive(primitive) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            if (!!!this.context.dracoLoader) {
-                throw new Error("THREE.GLTFLoader: No DRACOLoader instance provided.");
-            }
             const bufferViewIndex = primitive.extensions[this.name].bufferView;
             const extensionAttributes = primitive.extensions[this.name].attributes;
             const threeAttributeMap = {};
@@ -58,12 +56,53 @@ export class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
                 }
             }
             const bufferView = yield this.context.getDependency("bufferView", bufferViewIndex);
-            const geometry = yield this.context.dracoLoader.decodeDracoFile(bufferView, threeAttributeMap, attributeTypeMap);
+            const geometry = yield this.decodeDracoFile(bufferView, threeAttributeMap, attributeTypeMap);
             for (const attributeName in geometry.attributes) {
                 const attribute = geometry.attributes[attributeName];
                 const normalized = attributeNormalizedMap[attributeName];
                 if (normalized !== undefined)
                     attribute.normalized = normalized;
+            }
+            return geometry;
+        });
+    }
+    decodeDracoFile(buffer, attributeIDs, attributeTypes) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const ret = (yield this.context.bridgeContext.callNative("draco", "decode", {
+                buffer,
+                attributeIDs,
+                attributeTypes,
+            }));
+            const geometry = new Three.BufferGeometry();
+            const dataView = new DataView(ret);
+            let offset = 0;
+            const len = dataView.getUint32(offset);
+            offset += 4;
+            for (let l = 0; l < len; l++) {
+                const attributeId = dataView.getUint32(offset);
+                offset += 4;
+                const name = ((_a = Object.entries(attributeIDs).find(([_, v]) => v === attributeId)) === null || _a === void 0 ? void 0 : _a[0]) ||
+                    "";
+                const attributeType = attributeTypes[name];
+                const arrayType = WEBGL_COMPONENT_TYPES[attributeType];
+                const bufferLen = dataView.getUint32(offset);
+                offset += 4;
+                const arrayBuffer = ret.slice(offset, offset + bufferLen);
+                const array = new arrayType(arrayBuffer);
+                offset += bufferLen;
+                const itemSize = dataView.getUint32(offset);
+                offset += 4;
+                const attribute = new Three.BufferAttribute(array, itemSize, false);
+                geometry.setAttribute(name, attribute);
+            }
+            if (offset != ret.byteLength) {
+                const bufferLen = dataView.getUint32(offset);
+                offset += 4;
+                const arrayBuffer = ret.slice(offset, offset + bufferLen);
+                offset += bufferLen;
+                const array = new Uint32Array(arrayBuffer);
+                geometry.setIndex(new Three.BufferAttribute(array, 1));
             }
             return geometry;
         });

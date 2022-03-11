@@ -1,5 +1,6 @@
 import * as GSpec from "../glTF";
 import * as Three from "three";
+import { BridgeContext } from "doric";
 
 export const EXTENSIONS = {
   KHR_DRACO_MESH_COMPRESSION: "KHR_draco_mesh_compression",
@@ -55,6 +56,7 @@ export type ValueOf<T> = T[keyof T];
 
 export type GLTFContext = {
   gltf: GSpec.GLTF;
+  bridgeContext: BridgeContext;
   _addNodeRef(
     cache: { refs: Record<number, number>; uses: Record<number, number> },
     index: number
@@ -66,7 +68,6 @@ export type GLTFContext = {
     mapName: string,
     mapDef: any
   ): Promise<Three.Texture | undefined>;
-  ktx2Loader?: Three.Loader;
   loadTextureImage(
     index: number,
     source: GSpec.Image
@@ -83,13 +84,6 @@ export type GLTFContext = {
       mode: any,
       filter: any
     ) => Promise<ArrayBuffer>;
-  };
-  dracoLoader?: {
-    decodeDracoFile: (
-      bufferView: ArrayBuffer,
-      threeAttributeMap: Record<string, number>,
-      attributeTypeMap: Record<string, number>
-    ) => Promise<Three.BufferGeometry>;
   };
 };
 

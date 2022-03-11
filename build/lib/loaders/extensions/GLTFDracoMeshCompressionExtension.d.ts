@@ -9,4 +9,5 @@ import * as Three from "three";
 export declare class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     name: string;
     decodePrimitive(primitive: GSpec.MeshPrimitive): Promise<Three.BufferGeometry>;
+    decodeDracoFile(buffer: ArrayBuffer, attributeIDs: Record<string, number>, attributeTypes: Record<string, number>): Promise<Three.BufferGeometry>;
 }

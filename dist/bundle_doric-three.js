@@ -1125,9 +1125,6 @@ class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     decodePrimitive(primitive) {
         var _a;
         return __awaiter$a(this, void 0, void 0, function* () {
-            if (!!!this.context.dracoLoader) {
-                throw new Error("THREE.GLTFLoader: No DRACOLoader instance provided.");
-            }
             const bufferViewIndex = primitive.extensions[this.name].bufferView;
             const extensionAttributes = primitive.extensions[this.name].attributes;
             const threeAttributeMap = {};
@@ -1151,12 +1148,53 @@ class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
                 }
             }
             const bufferView = yield this.context.getDependency("bufferView", bufferViewIndex);
-            const geometry = yield this.context.dracoLoader.decodeDracoFile(bufferView, threeAttributeMap, attributeTypeMap);
+            const geometry = yield this.decodeDracoFile(bufferView, threeAttributeMap, attributeTypeMap);
             for (const attributeName in geometry.attributes) {
                 const attribute = geometry.attributes[attributeName];
                 const normalized = attributeNormalizedMap[attributeName];
                 if (normalized !== undefined)
                     attribute.normalized = normalized;
+            }
+            return geometry;
+        });
+    }
+    decodeDracoFile(buffer, attributeIDs, attributeTypes) {
+        var _a;
+        return __awaiter$a(this, void 0, void 0, function* () {
+            const ret = (yield this.context.bridgeContext.callNative("draco", "decode", {
+                buffer,
+                attributeIDs,
+                attributeTypes,
+            }));
+            const geometry = new Three__namespace.BufferGeometry();
+            const dataView = new DataView(ret);
+            let offset = 0;
+            const len = dataView.getUint32(offset);
+            offset += 4;
+            for (let l = 0; l < len; l++) {
+                const attributeId = dataView.getUint32(offset);
+                offset += 4;
+                const name = ((_a = Object.entries(attributeIDs).find(([_, v]) => v === attributeId)) === null || _a === void 0 ? void 0 : _a[0]) ||
+                    "";
+                const attributeType = attributeTypes[name];
+                const arrayType = WEBGL_COMPONENT_TYPES[attributeType];
+                const bufferLen = dataView.getUint32(offset);
+                offset += 4;
+                const arrayBuffer = ret.slice(offset, offset + bufferLen);
+                const array = new arrayType(arrayBuffer);
+                offset += bufferLen;
+                const itemSize = dataView.getUint32(offset);
+                offset += 4;
+                const attribute = new Three__namespace.BufferAttribute(array, itemSize, false);
+                geometry.setAttribute(name, attribute);
+            }
+            if (offset != ret.byteLength) {
+                const bufferLen = dataView.getUint32(offset);
+                offset += 4;
+                const arrayBuffer = ret.slice(offset, offset + bufferLen);
+                offset += bufferLen;
+                const array = new Uint32Array(arrayBuffer);
+                geometry.setIndex(new Three__namespace.BufferAttribute(array, 1));
             }
             return geometry;
         });
@@ -1929,18 +1967,7 @@ class GLTFTextureBasisUExtension extends TextureExtension {
             if (!!!source) {
                 return;
             }
-            const loader = this.context.ktx2Loader;
-            if (!loader) {
-                if (this.gltf.extensionsRequired &&
-                    this.gltf.extensionsRequired.indexOf(this.name) >= 0) {
-                    throw new Error("THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures");
-                }
-                else {
-                    doric.logw("THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures");
-                    // Assumes that the extension is optional and that a fallback texture is present
-                    return;
-                }
-            }
+            doric.logw("THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures");
             const ret = yield this.context.loadTextureImage(textureIndex, source);
             return ret;
         });
@@ -39266,47 +39293,10 @@ class GLTFParser {
         this.extensions = {};
         this.primitiveCache = {};
         this.pendingTextures = [];
-        this.dracoLoader = {
-            decodeDracoFile: (buffer, attributeIDs, attributeTypes) => __awaiter(this, void 0, void 0, function* () {
-                var _a;
-                const ret = (yield this.option.bridgeContext.callNative("draco", "decode", {
-                    buffer,
-                    attributeIDs,
-                    attributeTypes,
-                }));
-                const geometry = new Three__namespace.BufferGeometry();
-                const dataView = new DataView(ret);
-                let offset = 0;
-                const len = dataView.getUint32(offset);
-                offset += 4;
-                for (let l = 0; l < len; l++) {
-                    const attributeId = dataView.getUint32(offset);
-                    offset += 4;
-                    const name = ((_a = Object.entries(attributeIDs).find(([_, v]) => v === attributeId)) === null || _a === void 0 ? void 0 : _a[0]) || "";
-                    const attributeType = attributeTypes[name];
-                    const arrayType = WEBGL_COMPONENT_TYPES[attributeType];
-                    const bufferLen = dataView.getUint32(offset);
-                    offset += 4;
-                    const arrayBuffer = ret.slice(offset, offset + bufferLen);
-                    const array = new arrayType(arrayBuffer);
-                    offset += bufferLen;
-                    const itemSize = dataView.getUint32(offset);
-                    offset += 4;
-                    const attribute = new Three__namespace.BufferAttribute(array, itemSize, false);
-                    geometry.setAttribute(name, attribute);
-                }
-                if (offset != ret.byteLength) {
-                    const bufferLen = dataView.getUint32(offset);
-                    offset += 4;
-                    const arrayBuffer = ret.slice(offset, offset + bufferLen);
-                    offset += bufferLen;
-                    const array = new Uint32Array(arrayBuffer);
-                    geometry.setIndex(new Three__namespace.BufferAttribute(array, 1));
-                }
-                return geometry;
-            }),
-        };
         this.option = option;
+    }
+    get bridgeContext() {
+        return this.option.bridgeContext;
     }
     addCache(n, v) {
         this.cache.set(n, v);
@@ -40383,16 +40373,6 @@ class GLTFParser {
                         break;
                     case "texture":
                         dependency = this.loadTexture(index);
-                        if (!!!dependency) {
-                            for (const extension of Object.values(this.extensions)) {
-                                if (extension instanceof TextureExtension) {
-                                    dependency = extension.loadTexture(index);
-                                    if (!!dependency) {
-                                        break;
-                                    }
-                                }
-                            }
-                        }
                         break;
                     case "buffer":
                         dependency = this.loadBuffer(index);
@@ -40623,7 +40603,16 @@ class GLTFParser {
         return __awaiter(this, void 0, void 0, function* () {
             const textureDef = (_a = this.gltf.textures) === null || _a === void 0 ? void 0 : _a[textureIndex];
             if ((textureDef === null || textureDef === void 0 ? void 0 : textureDef.source) === undefined) {
-                return;
+                let dependency;
+                for (const extension of Object.values(this.extensions)) {
+                    if (extension instanceof TextureExtension) {
+                        dependency = extension.loadTexture(textureIndex);
+                        if (!!dependency) {
+                            break;
+                        }
+                    }
+                }
+                return dependency;
             }
             const source = (_b = this.gltf.images) === null || _b === void 0 ? void 0 : _b[textureDef.source];
             if (!!!source) {

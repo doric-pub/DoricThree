@@ -1,3 +1,19 @@
+/*
+ * Copyright [2022] [Doric.Pub]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <jni.h>
 
 #include <android/log.h>
@@ -62,17 +78,6 @@ void pushBuffer(std::vector<char> *bytes, char *p, uint32_t len) {
     pushSize(bytes, len);
     for (size_t s = 0; s < len; s++) {
         bytes->push_back(*(p + s));
-    }
-}
-
-void pushNULL(std::vector<char> *bytes) {
-}
-
-void pushBoolean(std::vector<char> *bytes, bool b) {
-    if (b) {
-        bytes->push_back(1);
-    } else {
-        bytes->push_back(0);
     }
 }
 
@@ -152,7 +157,7 @@ jbyteArray decodeDraco(JNIEnv *env, jobject thiz, jobject byte_buffer,
         return nullptr;
     }
 
-    size_t len = env->GetArrayLength(attributes);
+    uint32_t len = env->GetArrayLength(attributes);
     std::vector<char> vector;
     pushSize(&vector, len);
     for (size_t i = 0; i < len; i++) {

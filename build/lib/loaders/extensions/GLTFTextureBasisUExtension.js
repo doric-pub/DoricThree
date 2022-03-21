@@ -7,8 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { EXTENSIONS, TextureExtension } from "./GLTFExtensions";
-import { logw } from "doric";
+import { EXTENSIONS, TextureExtension, } from "./GLTFExtensions";
+import { ArrayBufferResource, loge } from "doric";
+import * as Three from "three";
+import { UnifiedResource } from "../../utils";
 /**
  * BasisU Texture Extension
  *
@@ -18,6 +20,7 @@ export class GLTFTextureBasisUExtension extends TextureExtension {
     constructor() {
         super(...arguments);
         this.name = EXTENSIONS.KHR_TEXTURE_BASISU;
+        this.textureCache = {};
     }
     loadTexture(textureIndex) {
         var _a, _b, _c;
@@ -31,9 +34,53 @@ export class GLTFTextureBasisUExtension extends TextureExtension {
             if (!!!source) {
                 return;
             }
-            logw("THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures");
-            const ret = yield this.context.loadTextureImage(textureIndex, source);
-            return ret;
+            const cacheKey = (source.uri || source.bufferView) + ":" + textureDef.sampler;
+            if (!!this.textureCache[cacheKey]) {
+                // See https://github.com/mrdoob/three.js/issues/21559.
+                return this.textureCache[cacheKey];
+            }
+            let resource;
+            if (source.bufferView !== undefined) {
+                const arrayBuffer = yield this.context.getDependency("bufferView", source.bufferView);
+                if (!!!arrayBuffer) {
+                    loge(`THREE.GLTFLoader: ${this.name} Image ${textureIndex} is missing bufferView ${source.bufferView}`);
+                    return;
+                }
+                resource = new ArrayBufferResource(arrayBuffer);
+            }
+            else if (source.uri !== undefined) {
+                const url = Three.LoaderUtils.resolveURL(decodeURIComponent(source.uri) || "", this.context.option.path);
+                resource = new UnifiedResource(this.context.option.resType, url);
+            }
+            else {
+                loge(`THREE.GLTFLoader: Image ${textureIndex} is missing URI and bufferView,source is ${JSON.stringify(source)}`);
+                return;
+            }
+            if (!!!this.context.ktx2Loader) {
+                loge("THREE.GLTFLoader: setKTX2Loader must be called before loading KTX2 textures");
+                return;
+            }
+            else {
+                const texture = yield this.context.ktx2Loader.loadTexture(this.context, resource);
+                if (!!!texture) {
+                    loge("THREE.KTXLoader: loadTexture error");
+                    return;
+                }
+                //texture.flipY = false;
+                if (textureDef.name)
+                    texture.name = textureDef.name;
+                // const samplers: GSpec.Sampler[] = this.gltf.samplers || [];
+                // const sampler: GSpec.Sampler = samplers[textureDef.sampler!!] || {};
+                // texture.magFilter =
+                //   WEBGL_FILTERS[sampler.magFilter!!] || Three.LinearFilter;
+                // texture.minFilter =
+                //   WEBGL_FILTERS[sampler.minFilter!!] || Three.LinearMipmapLinearFilter;
+                // texture.wrapS = WEBGL_WRAPPINGS[sampler.wrapS!!] || Three.RepeatWrapping;
+                // texture.wrapT = WEBGL_WRAPPINGS[sampler.wrapT!!] || Three.RepeatWrapping;
+                this.context.associations.set(texture, { index: textureIndex });
+                this.textureCache[cacheKey] = texture;
+                return texture;
+            }
         });
     }
 }

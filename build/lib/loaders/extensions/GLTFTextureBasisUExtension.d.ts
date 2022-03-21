@@ -1,4 +1,5 @@
 import { TextureExtension } from "./GLTFExtensions";
+import * as Three from "three";
 /**
  * BasisU Texture Extension
  *
@@ -6,5 +7,6 @@ import { TextureExtension } from "./GLTFExtensions";
  */
 export declare class GLTFTextureBasisUExtension extends TextureExtension {
     name: string;
-    loadTexture(textureIndex: number): Promise<import("three").Texture | undefined>;
+    textureCache: Record<string, Three.Texture>;
+    loadTexture(textureIndex: number): Promise<Three.Texture | undefined>;
 }

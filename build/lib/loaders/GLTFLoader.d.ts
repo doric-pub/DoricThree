@@ -18,7 +18,8 @@ export declare type GLTF = {
 export declare class GLTFLoader extends Three.Loader {
     context: BridgeContext;
     extensionTypes: Array<new (context: GLTFContext) => GLTFExtension>;
-    constructor(context: BridgeContext);
+    renderer: Three.WebGLRenderer | undefined;
+    constructor(context: BridgeContext, renderer?: Three.WebGLRenderer);
     loadTexture(pendingTexture: {
         texture: Three.Texture;
         resource: Resource;

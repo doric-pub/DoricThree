@@ -1,3 +1,4 @@
+import * as Three from "three";
 export const EXTENSIONS = {
     KHR_DRACO_MESH_COMPRESSION: "KHR_draco_mesh_compression",
     KHR_LIGHTS_PUNCTUAL: "KHR_lights_punctual",
@@ -22,6 +23,19 @@ export const WEBGL_COMPONENT_TYPES = {
     5123: Uint16Array,
     5125: Uint32Array,
     5126: Float32Array,
+};
+export const WEBGL_FILTERS = {
+    9728: Three.NearestFilter,
+    9729: Three.LinearFilter,
+    9984: Three.NearestMipmapNearestFilter,
+    9985: Three.LinearMipmapNearestFilter,
+    9986: Three.NearestMipmapLinearFilter,
+    9987: Three.LinearMipmapLinearFilter,
+};
+export const WEBGL_WRAPPINGS = {
+    33071: Three.ClampToEdgeWrapping,
+    33648: Three.MirroredRepeatWrapping,
+    10497: Three.RepeatWrapping,
 };
 export const ATTRIBUTES = {
     POSITION: "position",

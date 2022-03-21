@@ -1,6 +1,7 @@
 import * as GSpec from "../glTF";
 import * as Three from "three";
 import { BridgeContext } from "doric";
+import { KTX2Loader } from "../KTX2Loader";
 export declare const EXTENSIONS: {
     KHR_DRACO_MESH_COMPRESSION: string;
     KHR_LIGHTS_PUNCTUAL: string;
@@ -27,11 +28,37 @@ export declare const WEBGL_COMPONENT_TYPES: {
     5125: Uint32ArrayConstructor;
     5126: Float32ArrayConstructor;
 };
+export declare const WEBGL_FILTERS: {
+    9728: Three.TextureFilter;
+    9729: Three.TextureFilter;
+    9984: Three.TextureFilter;
+    9985: Three.TextureFilter;
+    9986: Three.TextureFilter;
+    9987: Three.TextureFilter;
+};
+export declare const WEBGL_WRAPPINGS: {
+    33071: Three.Wrapping;
+    33648: Three.Wrapping;
+    10497: Three.Wrapping;
+};
 export declare const ATTRIBUTES: Record<string, string>;
 export declare type ValueOf<T> = T[keyof T];
+export declare type ParseOption = {
+    gltf: GSpec.GLTF;
+    bridgeContext: BridgeContext;
+    path: string;
+    resType: string;
+    body?: ArrayBuffer;
+    asyncTexture?: boolean;
+};
 export declare type GLTFContext = {
     gltf: GSpec.GLTF;
     bridgeContext: BridgeContext;
+    associations: Map<Three.Object3D | Three.EventDispatcher, {
+        index: number;
+        primitives?: number;
+    } | undefined>;
+    option: ParseOption;
     _addNodeRef(cache: {
         refs: Record<number, number>;
         uses: Record<number, number>;
@@ -47,6 +74,7 @@ export declare type GLTFContext = {
         supported: boolean;
         decode: (source: Uint8Array, count: number, stride: number, mode: any, filter: any) => Promise<ArrayBuffer>;
     };
+    ktx2Loader?: KTX2Loader;
 };
 export declare abstract class GLTFExtension {
     abstract name: string;

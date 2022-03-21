@@ -12,7 +12,7 @@ import * as Three from "three";
 import { ArrayBufferResource, UnifiedResource } from "../utils";
 import { createUniqueName } from "./GLTFUtils";
 import { GLTFDracoMeshCompressionExtension } from "./extensions/GLTFDracoMeshCompressionExtension";
-import { AttachmentExtension, ATTRIBUTES, BufferViewExtension, EXTENSIONS, MeshExtension, TextureExtension, WEBGL_COMPONENT_TYPES, } from "./extensions/GLTFExtensions";
+import { AttachmentExtension, ATTRIBUTES, BufferViewExtension, EXTENSIONS, MeshExtension, TextureExtension, WEBGL_COMPONENT_TYPES, WEBGL_FILTERS, WEBGL_WRAPPINGS, } from "./extensions/GLTFExtensions";
 import { GLTFLightsExtension } from "./extensions/GLTFLightsExtension";
 import { GLTFMaterialsClearcoatExtension } from "./extensions/GLTFMaterialsClearcoatExtension";
 import { GLTFMaterialsIorExtension } from "./extensions/GLTFMaterialsIorExtension";
@@ -28,6 +28,7 @@ import { GLTFTextureTransformExtension } from "./extensions/GLTFTextureTransform
 import { GLTFTextureWebPExtension } from "./extensions/GLTFTextureWebPExtension";
 import { GLTFCubicSplineInterpolant, GLTFCubicSplineQuaternionInterpolant, } from "./Interpolation";
 import { GLTFMeshQuantizationExtension } from "./extensions/GLTFMeshQuantizationExtension";
+import { KTX2Loader } from "./KTX2Loader";
 export function loadGLTF(context, resource, asyncTexture = false) {
     return __awaiter(this, void 0, void 0, function* () {
         const loader = new GLTFLoader(context);
@@ -59,19 +60,6 @@ const WEBGL_CONSTANTS = {
     TRIANGLE_FAN: 6,
     UNSIGNED_BYTE: 5121,
     UNSIGNED_SHORT: 5123,
-};
-const WEBGL_FILTERS = {
-    9728: Three.NearestFilter,
-    9729: Three.LinearFilter,
-    9984: Three.NearestMipmapNearestFilter,
-    9985: Three.LinearMipmapNearestFilter,
-    9986: Three.NearestMipmapLinearFilter,
-    9987: Three.LinearMipmapLinearFilter,
-};
-const WEBGL_WRAPPINGS = {
-    33071: Three.ClampToEdgeWrapping,
-    33648: Three.MirroredRepeatWrapping,
-    10497: Three.RepeatWrapping,
 };
 const WEBGL_TYPE_SIZES = {
     SCALAR: 1,
@@ -296,7 +284,7 @@ function createDefaultMaterial() {
     return defaultMaterial;
 }
 export class GLTFLoader extends Three.Loader {
-    constructor(context) {
+    constructor(context, renderer) {
         super();
         this.extensionTypes = [
             GLTFMaterialsClearcoatExtension,
@@ -311,6 +299,7 @@ export class GLTFLoader extends Three.Loader {
             GLTFMeshoptCompressionExtension, //
         ];
         this.context = context;
+        this.renderer = renderer;
     }
     loadTexture(pendingTexture) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -356,6 +345,9 @@ export class GLTFLoader extends Three.Loader {
                 body: glbBody,
                 asyncTexture,
             });
+            if (this.renderer) {
+                gltfParser.ktx2Loader = new KTX2Loader(this.renderer);
+            }
             this.extensionTypes.forEach((e) => {
                 const extension = new e(gltfParser);
                 gltfParser.extensions[extension.name] = extension;

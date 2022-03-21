@@ -45,12 +45,13 @@ file(GLOB ktx_src
         "${KTX_DIR}/transcoder/*.inc"
         "${KTX_DIR}/transcoder/*.cpp"
         )
-
+include_directories("${KTX_DIR}/transcoder")
 add_library(doric_ktx
         SHARED
         ${ktx_src}
         "src/main/cpp/native-lib-ktx.cpp")
-
+#target_include_directories(doric_ktx PRIVATE
+#        "${KTX_DIR}/transcoder")
 
 target_link_libraries(doric_ktx ${log-lib})
 ###############Ktx end###############

@@ -51,5 +51,6 @@ public class DoricThreeLibrary extends DoricLibrary {
             e.printStackTrace();
         }
         registry.registerNativePlugin(DoricDracoPlugin.class);
+        registry.registerNativePlugin(DoricKTXPlugin.class);
     }
 }

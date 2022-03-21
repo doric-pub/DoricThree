@@ -19,9 +19,12 @@ import {
   GLTFDepsType,
   GLTFExtension,
   MeshExtension,
+  ParseOption,
   TextureExtension,
   ValueOf,
   WEBGL_COMPONENT_TYPES,
+  WEBGL_FILTERS,
+  WEBGL_WRAPPINGS,
 } from "./extensions/GLTFExtensions";
 import { GLTFLightsExtension } from "./extensions/GLTFLightsExtension";
 import { GLTFMaterialsClearcoatExtension } from "./extensions/GLTFMaterialsClearcoatExtension";
@@ -45,6 +48,7 @@ import {
   GLTFCubicSplineQuaternionInterpolant,
 } from "./Interpolation";
 import { GLTFMeshQuantizationExtension } from "./extensions/GLTFMeshQuantizationExtension";
+import { KTX2Loader } from "./KTX2Loader";
 
 export async function loadGLTF(
   context: BridgeContext,
@@ -95,21 +99,6 @@ const WEBGL_CONSTANTS = {
   TRIANGLE_FAN: 6,
   UNSIGNED_BYTE: 5121,
   UNSIGNED_SHORT: 5123,
-};
-
-const WEBGL_FILTERS = {
-  9728: Three.NearestFilter,
-  9729: Three.LinearFilter,
-  9984: Three.NearestMipmapNearestFilter,
-  9985: Three.LinearMipmapNearestFilter,
-  9986: Three.NearestMipmapLinearFilter,
-  9987: Three.LinearMipmapLinearFilter,
-};
-
-const WEBGL_WRAPPINGS = {
-  33071: Three.ClampToEdgeWrapping,
-  33648: Three.MirroredRepeatWrapping,
-  10497: Three.RepeatWrapping,
 };
 
 const WEBGL_TYPE_SIZES = {
@@ -398,15 +387,6 @@ function createDefaultMaterial(): Three.MeshStandardMaterial {
   return defaultMaterial;
 }
 
-type ParseOption = {
-  gltf: GSpec.GLTF;
-  bridgeContext: BridgeContext;
-  path: string;
-  resType: string;
-  body?: ArrayBuffer;
-  asyncTexture?: boolean;
-};
-
 export class GLTFLoader extends Three.Loader {
   context: BridgeContext;
   extensionTypes: Array<new (context: GLTFContext) => GLTFExtension> = [
@@ -421,10 +401,11 @@ export class GLTFLoader extends Three.Loader {
     GLTFLightsExtension,
     GLTFMeshoptCompressionExtension, //
   ];
-
-  constructor(context: BridgeContext) {
+  renderer: Three.WebGLRenderer | undefined;
+  constructor(context: BridgeContext, renderer?: Three.WebGLRenderer) {
     super();
     this.context = context;
+    this.renderer = renderer;
   }
 
   async loadTexture(pendingTexture: {
@@ -475,6 +456,9 @@ export class GLTFLoader extends Three.Loader {
       body: glbBody,
       asyncTexture,
     });
+    if (this.renderer) {
+      gltfParser.ktx2Loader = new KTX2Loader(this.renderer);
+    }
     this.extensionTypes.forEach((e) => {
       const extension = new e(gltfParser);
       gltfParser.extensions[extension.name] = extension;
@@ -575,6 +559,7 @@ class GLTFParser implements GLTFContext {
     texture: Three.Texture;
     resource: Resource;
   }[] = [];
+  ktx2Loader?: KTX2Loader;
   constructor(option: ParseOption) {
     this.option = option;
   }

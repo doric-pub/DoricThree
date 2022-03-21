@@ -14,9 +14,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@types/three": "0.137.0",
-    "dangle": "^0.1.8",
-    "doric": ">=0.10.2",
-    "doric-cli": ">=0.10.2",
+    "dangle": "^0.1.9",
+    "doric": ">=0.10.6",
+    "doric-cli": ">=0.10.6",
     "three": "0.137.5"
   },
   "devDependencies": {

@@ -63,12 +63,12 @@ export class LoaderPanel extends Panel {
         </VLayout>
         <ThreeView
           ref={threeRef}
+          enableCmdRecord={true}
           gestureRef={gestureRef}
           layoutConfig={layoutConfig().most()}
           transparentBackground={true}
           onInited={async (renderer) => {
             try {
-              loge("Inited");
               const scene = new THREE.Scene();
               const camera = new THREE.PerspectiveCamera(
                 50,
@@ -107,7 +107,7 @@ export class LoaderPanel extends Panel {
                 this.context
               ).requestAnimationFrame;
               loge("start loading gltf");
-              const loader = new GLTFLoader(this.context);
+              const loader = new GLTFLoader(this.context, renderer);
               if (!!!this.data.resource) {
                 modal(this.context).toast("Resource is empty!");
                 navigator(this.context).pop();
@@ -140,7 +140,11 @@ export class LoaderPanel extends Panel {
               }
               loadingIconRef.current.stopAnimating(this.context);
               loadingRef.current.hidden = true;
-              loge("end loading gltf");
+              loge(
+                "end loading gltf",
+                "all commands:",
+                threeRef.current.glCmds.length
+              );
             } catch (e) {
               if (e instanceof Error) {
                 loge(e.message, e.stack);

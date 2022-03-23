@@ -83,15 +83,15 @@ export class GLTFTextureBasisUExtension extends TextureExtension {
 
       if (textureDef.name) texture.name = textureDef.name;
 
-      // const samplers: GSpec.Sampler[] = this.gltf.samplers || [];
-      // const sampler: GSpec.Sampler = samplers[textureDef.sampler!!] || {};
+      const samplers: GSpec.Sampler[] = this.gltf.samplers || [];
+      const sampler: GSpec.Sampler = samplers[textureDef.sampler!!] || {};
 
       // texture.magFilter =
       //   WEBGL_FILTERS[sampler.magFilter!!] || Three.LinearFilter;
       // texture.minFilter =
       //   WEBGL_FILTERS[sampler.minFilter!!] || Three.LinearMipmapLinearFilter;
-      // texture.wrapS = WEBGL_WRAPPINGS[sampler.wrapS!!] || Three.RepeatWrapping;
-      // texture.wrapT = WEBGL_WRAPPINGS[sampler.wrapT!!] || Three.RepeatWrapping;
+      texture.wrapS = WEBGL_WRAPPINGS[sampler.wrapS!!] || Three.RepeatWrapping;
+      texture.wrapT = WEBGL_WRAPPINGS[sampler.wrapT!!] || Three.RepeatWrapping;
       this.context.associations.set(texture, { index: textureIndex });
       this.textureCache[cacheKey] = texture;
       return texture;

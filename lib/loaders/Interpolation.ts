@@ -1,4 +1,4 @@
-import * as Three from "Three";
+import * as Three from "three";
 /*********************************/
 /********** INTERPOLATION ********/
 /*********************************/

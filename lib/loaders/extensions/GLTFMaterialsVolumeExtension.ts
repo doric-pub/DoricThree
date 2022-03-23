@@ -28,9 +28,8 @@ export class GLTFMaterialsVolumeExtension extends MeshExtension {
     const pending = [];
 
     const extension = materialDef.extensions[this.name];
-    // TODO: check
-    // materialParams.thickness =
-    //   extension.thicknessFactor !== undefined ? extension.thicknessFactor : 0;
+    (materialParams as any).thickness =
+      extension.thicknessFactor !== undefined ? extension.thicknessFactor : 0;
 
     if (extension.thicknessTexture !== undefined) {
       pending.push(

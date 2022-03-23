@@ -15,9 +15,9 @@
   "dependencies": {
     "@types/three": "0.137.0",
     "dangle": "^0.1.8",
-    "doric": ">=0.10.2",
-    "doric-cli": ">=0.10.2",
-    "three": "0.137.5"
+    "doric": ">=0.10.8",
+    "doric-cli": ">=0.10.8",
+    "three": "^0.138.0"
   },
   "devDependencies": {
     "@rollup/plugin-buble": "^0.21.3",

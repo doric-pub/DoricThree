@@ -763,19 +763,23 @@ class GLTFParser {
         return __awaiter(this, void 0, void 0, function* () {
             let hasMorphPosition = false;
             let hasMorphNormal = false;
+            let hasMorphColor = false;
             for (let i = 0, il = targets.length; i < il; i++) {
                 const target = targets[i];
                 if (target.POSITION !== undefined)
                     hasMorphPosition = true;
                 if (target.NORMAL !== undefined)
                     hasMorphNormal = true;
-                if (hasMorphPosition && hasMorphNormal)
+                if (target.COLOR_0 !== undefined)
+                    hasMorphColor = true;
+                if (hasMorphPosition && hasMorphNormal && hasMorphColor)
                     break;
             }
-            if (!hasMorphPosition && !hasMorphNormal)
+            if (!hasMorphPosition && !hasMorphNormal && !hasMorphColor)
                 return geometry;
             const pendingPositionAccessors = [];
             const pendingNormalAccessors = [];
+            const pendingColorAccessors = [];
             for (let i = 0, il = targets.length; i < il; i++) {
                 const target = targets[i];
                 if (hasMorphPosition) {
@@ -790,17 +794,27 @@ class GLTFParser {
                         : geometry.attributes.normal;
                     pendingNormalAccessors.push(pendingAccessor);
                 }
+                if (hasMorphColor) {
+                    const pendingAccessor = target.COLOR_0 !== undefined
+                        ? this.getDependency("accessor", target.COLOR_0)
+                        : geometry.attributes.color;
+                    pendingColorAccessors.push(pendingAccessor);
+                }
             }
             const accessors = yield Promise.all([
                 Promise.all(pendingPositionAccessors),
                 Promise.all(pendingNormalAccessors),
+                Promise.all(pendingColorAccessors),
             ]);
             const morphPositions = accessors[0];
             const morphNormals = accessors[1];
+            const morphColors = accessors[2];
             if (hasMorphPosition)
                 geometry.morphAttributes.position = morphPositions;
             if (hasMorphNormal)
                 geometry.morphAttributes.normal = morphNormals;
+            if (hasMorphColor)
+                geometry.morphAttributes.color = morphColors;
             geometry.morphTargetsRelative = true;
             return geometry;
         });

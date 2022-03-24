@@ -22,6 +22,7 @@ import {
 } from "doric";
 import { DemoData } from "./data";
 import { LoaderPanel } from "./Loader";
+import { webgl_loader_texture_ktx2 } from "./webgl_loader_texture_ktx2";
 
 interface ExamplesData {
   data: typeof DemoData;
@@ -98,7 +99,15 @@ class ListVM extends ViewModel<ExamplesData, ListVH> {
             layoutConfig={layoutConfig().mostWidth().fitHeight()}
             backgroundColor={Color.parse("#ecf0f1")}
             onClick={() => {
-              navigator(this.context).push(LoaderPanel, { extra: { index } });
+              if (index == 0) {
+                navigator(this.context).push(webgl_loader_texture_ktx2, {
+                  extra: { index },
+                });
+              } else {
+                navigator(this.context).push(LoaderPanel, {
+                  extra: { index },
+                });
+              }
             }}
           >
             <VLayout

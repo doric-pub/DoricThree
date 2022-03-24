@@ -63,7 +63,6 @@ export class LoaderPanel extends Panel {
         </VLayout>
         <ThreeView
           ref={threeRef}
-          enableCmdRecord={true}
           gestureRef={gestureRef}
           layoutConfig={layoutConfig().most()}
           transparentBackground={true}
@@ -140,11 +139,6 @@ export class LoaderPanel extends Panel {
               }
               loadingIconRef.current.stopAnimating(this.context);
               loadingRef.current.hidden = true;
-              loge(
-                "end loading gltf",
-                "all commands:",
-                threeRef.current.glCmds.length
-              );
             } catch (e) {
               if (e instanceof Error) {
                 loge(e.message, e.stack);

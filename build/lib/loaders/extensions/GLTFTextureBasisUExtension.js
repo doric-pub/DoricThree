@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { EXTENSIONS, TextureExtension, WEBGL_WRAPPINGS, } from "./GLTFExtensions";
+import { EXTENSIONS, TextureExtension, WEBGL_FILTERS, WEBGL_WRAPPINGS, } from "./GLTFExtensions";
 import { ArrayBufferResource, loge } from "doric";
 import * as Three from "three";
 import { UnifiedResource } from "../../utils";
@@ -61,20 +61,20 @@ export class GLTFTextureBasisUExtension extends TextureExtension {
                 return;
             }
             else {
-                const texture = yield this.context.ktx2Loader.loadTexture(this.context, resource);
+                const texture = yield this.context.ktx2Loader.loadTexture(this.context.bridgeContext, resource);
                 if (!!!texture) {
                     loge("THREE.KTXLoader: loadTexture error");
                     return;
                 }
-                //texture.flipY = false;
+                texture.flipY = false;
                 if (textureDef.name)
                     texture.name = textureDef.name;
                 const samplers = this.gltf.samplers || [];
                 const sampler = samplers[textureDef.sampler] || {};
-                // texture.magFilter =
-                //   WEBGL_FILTERS[sampler.magFilter!!] || Three.LinearFilter;
-                // texture.minFilter =
-                //   WEBGL_FILTERS[sampler.minFilter!!] || Three.LinearMipmapLinearFilter;
+                texture.magFilter =
+                    WEBGL_FILTERS[sampler.magFilter] || Three.LinearFilter;
+                texture.minFilter =
+                    WEBGL_FILTERS[sampler.minFilter] || Three.LinearMipmapLinearFilter;
                 texture.wrapS = WEBGL_WRAPPINGS[sampler.wrapS] || Three.RepeatWrapping;
                 texture.wrapT = WEBGL_WRAPPINGS[sampler.wrapT] || Three.RepeatWrapping;
                 this.context.associations.set(texture, { index: textureIndex });

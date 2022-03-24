@@ -1,4 +1,4 @@
-import { loge, Resource } from "doric";
+import { BridgeContext, loge, Resource } from "doric";
 import * as Three from "three";
 import { GLTFContext } from "./extensions/GLTFExtensions";
 
@@ -39,10 +39,10 @@ export class KTX2Loader {
       (config.pvrtcSupported ? 0x1 << 5 : 0);
   }
   async loadTexture(
-    context: GLTFContext,
+    context: BridgeContext,
     resource: Resource
   ): Promise<Three.Texture | undefined> {
-    const arrayBuffer: ArrayBuffer = await context.bridgeContext.callNative(
+    const arrayBuffer: ArrayBuffer = await context.callNative(
       "ktx2",
       "decode",
       {

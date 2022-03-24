@@ -3,6 +3,31 @@ import models from "../assets/glTF-Sample-Models/2.0/model-index.json";
 
 export const DemoData = [
   {
+    title: "ktx2",
+  },
+  {
+    title: "glTF",
+    resource: new AssetsResource(
+      `glTF-Sample-Models/2.0/StainedGlassLamp/glTF/StainedGlassLamp.gltf`
+    ),
+  },
+  {
+    title: "glTF-JPG-PNG",
+    resource: new AssetsResource(
+      `glTF-Sample-Models/2.0/StainedGlassLamp/glTF-JPG-PNG/StainedGlassLamp.gltf`
+    ),
+  },
+  {
+    title: "glTF-KTX-BasisU",
+    resource: new AssetsResource(
+      `glTF-Sample-Models/2.0/StainedGlassLamp/glTF-KTX-BasisU/StainedGlassLamp.gltf`
+    ),
+  },
+  {
+    title: "圆形展厅",
+    resource: new AssetsResource("圆形展厅.glb"),
+  },
+  {
     title: "Old Bicycle",
     resource: new AssetsResource("Old Bicycle.glb"),
   },

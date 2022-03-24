@@ -2008,20 +2008,20 @@ class GLTFTextureBasisUExtension extends TextureExtension {
                 return;
             }
             else {
-                const texture = yield this.context.ktx2Loader.loadTexture(this.context, resource);
+                const texture = yield this.context.ktx2Loader.loadTexture(this.context.bridgeContext, resource);
                 if (!!!texture) {
                     doric.loge("THREE.KTXLoader: loadTexture error");
                     return;
                 }
-                //texture.flipY = false;
+                texture.flipY = false;
                 if (textureDef.name)
                     texture.name = textureDef.name;
                 const samplers = this.gltf.samplers || [];
                 const sampler = samplers[textureDef.sampler] || {};
-                // texture.magFilter =
-                //   WEBGL_FILTERS[sampler.magFilter!!] || Three.LinearFilter;
-                // texture.minFilter =
-                //   WEBGL_FILTERS[sampler.minFilter!!] || Three.LinearMipmapLinearFilter;
+                texture.magFilter =
+                    WEBGL_FILTERS[sampler.magFilter] || Three__namespace.LinearFilter;
+                texture.minFilter =
+                    WEBGL_FILTERS[sampler.minFilter] || Three__namespace.LinearMipmapLinearFilter;
                 texture.wrapS = WEBGL_WRAPPINGS[sampler.wrapS] || Three__namespace.RepeatWrapping;
                 texture.wrapT = WEBGL_WRAPPINGS[sampler.wrapT] || Three__namespace.RepeatWrapping;
                 this.context.associations.set(texture, { index: textureIndex });
@@ -2215,7 +2215,7 @@ class KTX2Loader {
     }
     loadTexture(context, resource) {
         return __awaiter$1(this, void 0, void 0, function* () {
-            const arrayBuffer = yield context.bridgeContext.callNative("ktx2", "decode", {
+            const arrayBuffer = yield context.callNative("ktx2", "decode", {
                 resource,
                 extensionFlag: this.extensionFlag,
             });
@@ -4078,6 +4078,7 @@ function loadTexture(parser, resource) {
 }
 
 exports.GLTFLoader = GLTFLoader;
+exports.KTX2Loader = KTX2Loader;
 exports.MapControls = MapControls;
 exports.OrbitControls = OrbitControls;
 exports.loadGLTF = loadGLTF;

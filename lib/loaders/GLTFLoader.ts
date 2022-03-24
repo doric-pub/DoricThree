@@ -1794,7 +1794,7 @@ class GLTFParser implements GLTFContext {
     }
     // reserve node's name before its dependencies, so the root has the intended name.
     const nodeName = nodeDef.name ? createUniqueName(nodeDef.name) : "";
-    const pending = [];
+    const pending: Promise<any>[] = [];
     const meshPromise = this.createNodeMesh(nodeIndex);
     if (meshPromise) {
       pending.push(meshPromise);

@@ -72,24 +72,24 @@ export class GLTFTextureBasisUExtension extends TextureExtension {
       return;
     } else {
       const texture = await this.context.ktx2Loader.loadTexture(
-        this.context,
+        this.context.bridgeContext,
         resource
       );
       if (!!!texture) {
         loge("THREE.KTXLoader: loadTexture error");
         return;
       }
-      //texture.flipY = false;
+      texture.flipY = false;
 
       if (textureDef.name) texture.name = textureDef.name;
 
       const samplers: GSpec.Sampler[] = this.gltf.samplers || [];
       const sampler: GSpec.Sampler = samplers[textureDef.sampler!!] || {};
 
-      // texture.magFilter =
-      //   WEBGL_FILTERS[sampler.magFilter!!] || Three.LinearFilter;
-      // texture.minFilter =
-      //   WEBGL_FILTERS[sampler.minFilter!!] || Three.LinearMipmapLinearFilter;
+      texture.magFilter =
+        WEBGL_FILTERS[sampler.magFilter!!] || Three.LinearFilter;
+      texture.minFilter =
+        WEBGL_FILTERS[sampler.minFilter!!] || Three.LinearMipmapLinearFilter;
       texture.wrapS = WEBGL_WRAPPINGS[sampler.wrapS!!] || Three.RepeatWrapping;
       texture.wrapT = WEBGL_WRAPPINGS[sampler.wrapT!!] || Three.RepeatWrapping;
       this.context.associations.set(texture, { index: textureIndex });

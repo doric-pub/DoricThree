@@ -43,7 +43,7 @@ export class KTX2Loader {
     }
     loadTexture(context, resource) {
         return __awaiter(this, void 0, void 0, function* () {
-            const arrayBuffer = yield context.bridgeContext.callNative("ktx2", "decode", {
+            const arrayBuffer = yield context.callNative("ktx2", "decode", {
                 resource,
                 extensionFlag: this.extensionFlag,
             });

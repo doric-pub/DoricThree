@@ -1,6 +1,5 @@
-import { BridgeContext, loge, Resource } from "doric";
+import { BridgeContext, Resource } from "doric";
 import * as Three from "three";
-import { GLTFContext } from "./extensions/GLTFExtensions";
 
 const KTX2TransferSRGB = 2;
 const KTX2_ALPHA_PREMULTIPLIED = 1;

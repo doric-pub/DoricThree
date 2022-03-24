@@ -1023,6 +1023,8 @@ const EXTENSIONS = {
     KHR_MESH_QUANTIZATION: "KHR_mesh_quantization",
     EXT_TEXTURE_WEBP: "EXT_texture_webp",
     EXT_MESHOPT_COMPRESSION: "EXT_meshopt_compression",
+    //MISSED in Three
+    KHR_MATERIALS_VARIANTS: "KHR_materials_variants",
 };
 const WEBGL_COMPONENT_TYPES = {
     5120: Int8Array,

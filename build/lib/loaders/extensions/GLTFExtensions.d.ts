@@ -18,6 +18,7 @@ export declare const EXTENSIONS: {
     KHR_MESH_QUANTIZATION: string;
     EXT_TEXTURE_WEBP: string;
     EXT_MESHOPT_COMPRESSION: string;
+    KHR_MATERIALS_VARIANTS: string;
 };
 export declare type GLTFDepsType = "scene" | "node" | "mesh" | "accessor" | "bufferView" | "buffer" | "material" | "texture" | "skin" | "animation" | "camera";
 export declare const WEBGL_COMPONENT_TYPES: {

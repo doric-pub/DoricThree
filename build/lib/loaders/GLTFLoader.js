@@ -29,6 +29,7 @@ import { GLTFTextureWebPExtension } from "./extensions/GLTFTextureWebPExtension"
 import { GLTFCubicSplineInterpolant, GLTFCubicSplineQuaternionInterpolant, } from "./Interpolation";
 import { GLTFMeshQuantizationExtension } from "./extensions/GLTFMeshQuantizationExtension";
 import { KTX2Loader } from "./KTX2Loader";
+import { GLTFMaterialsVariantsExtension } from "./extensions/GLTFMaterialsVariantsExtension";
 export function loadGLTF(context, resource, asyncTexture = false) {
     return __awaiter(this, void 0, void 0, function* () {
         const loader = new GLTFLoader(context);
@@ -377,11 +378,13 @@ export class GLTFLoader extends Three.Loader {
                             gltfParser.extensions[extensionName] =
                                 new GLTFMeshQuantizationExtension(gltfParser);
                             break;
+                        case EXTENSIONS.KHR_MATERIALS_VARIANTS:
+                            gltfParser.extensions[extensionName] =
+                                new GLTFMaterialsVariantsExtension(gltfParser);
+                            break;
                         default:
-                            if (extensionsRequired.indexOf(extensionName) >= 0 &&
-                                gltfParser.extensions[extensionName] === undefined) {
-                                console.warn('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
-                            }
+                            logw('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                            break;
                     }
                 }
             }
@@ -458,7 +461,15 @@ class GLTFParser {
             extensions.forEach((ext) => {
                 ext.afterRoot && ext.afterRoot();
             });
-            return result;
+            if (this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
+                const extension = this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
+                return Object.assign(Object.assign({}, result), { variants: extension.variants, variantChanger: (idx) => __awaiter(this, void 0, void 0, function* () {
+                        yield extension.changeVariant(idx);
+                    }) });
+            }
+            else {
+                return result;
+            }
         });
     }
     /**
@@ -868,7 +879,7 @@ class GLTFParser {
      * @return {Promise<Group|Mesh|SkinnedMesh>}
      */
     loadMesh(meshIndex) {
-        var _a;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const extensions = this.extensions;
             const meshDef = (_a = this.gltf.meshes) === null || _a === void 0 ? void 0 : _a[meshIndex];
@@ -877,25 +888,21 @@ class GLTFParser {
                 return;
             }
             const pending = [];
-            primitives.forEach((e) => {
-                if (e.material !== undefined) {
-                    pending.push(this.getDependency("material", e.material));
-                }
-                else {
-                    pending.push(createDefaultMaterial());
-                }
-            });
             pending.push(this.loadGeometries(primitives));
-            const results = yield Promise.all(pending);
-            const materials = results.slice(0, results.length - 1);
-            const geometries = results[results.length - 1];
+            const geometries = yield this.loadGeometries(primitives);
             const meshes = [];
-            for (let i = 0; i < geometries.length; i++) {
+            for (let i = 0; i < primitives.length; i++) {
                 const geometry = geometries[i];
                 const primitive = primitives[i];
                 // 1. create Mesh
                 let mesh;
-                const material = materials[i];
+                let material;
+                if (primitive.material !== undefined) {
+                    material = yield this.getDependency("material", primitive.material);
+                }
+                else {
+                    material = createDefaultMaterial();
+                }
                 if (primitive.mode === WEBGL_CONSTANTS.TRIANGLES ||
                     primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP ||
                     primitive.mode === WEBGL_CONSTANTS.TRIANGLE_FAN ||
@@ -932,6 +939,21 @@ class GLTFParser {
                 }
                 else {
                     throw new Error("THREE.GLTFLoader: Primitive mode unsupported: " + primitive.mode);
+                }
+                if ((_b = primitive.extensions) === null || _b === void 0 ? void 0 : _b[EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
+                    const extension = this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
+                    const variantMapping = primitive.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
+                    extension.variantCallback.push((variantIndex) => __awaiter(this, void 0, void 0, function* () {
+                        var _c;
+                        const materialIdx = (_c = variantMapping.mappings.find((e) => e.variants.filter((v) => v === variantIndex).length > 0)) === null || _c === void 0 ? void 0 : _c.material;
+                        if (materialIdx === undefined) {
+                            loge(`${extension.name} error: change variant ${variantIndex} at mesh${meshIndex},primitive${i}`);
+                        }
+                        else {
+                            const newMaterial = yield this.getDependency("material", materialIdx);
+                            mesh.material = newMaterial;
+                        }
+                    }));
                 }
                 if (Object.keys(mesh.geometry.morphAttributes).length > 0) {
                     updateMorphTargets(mesh, meshDef);

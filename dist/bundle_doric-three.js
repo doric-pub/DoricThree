@@ -1108,7 +1108,7 @@ function loge(...message) {
     nativeLog('e', out);
 }
 
-var __awaiter$b = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$c = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1139,7 +1139,7 @@ class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     }
     decodePrimitive(primitive) {
         var _a;
-        return __awaiter$b(this, void 0, void 0, function* () {
+        return __awaiter$c(this, void 0, void 0, function* () {
             const bufferViewIndex = primitive.extensions[this.name].bufferView;
             const extensionAttributes = primitive.extensions[this.name].attributes;
             const threeAttributeMap = {};
@@ -1175,7 +1175,7 @@ class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     }
     decodeDracoFile(buffer, attributeIDs, attributeTypes) {
         var _a;
-        return __awaiter$b(this, void 0, void 0, function* () {
+        return __awaiter$c(this, void 0, void 0, function* () {
             const ret = (yield this.context.bridgeContext.callNative("draco", "decode", {
                 buffer,
                 attributeIDs,
@@ -1216,7 +1216,7 @@ class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     }
 }
 
-var __awaiter$a = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$b = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1250,7 +1250,7 @@ class GLTFLightsExtension extends AttachmentExtension {
     }
     createNodeAttachment(index) {
         var _a, _b, _c, _d, _e, _f, _g;
-        return __awaiter$a(this, void 0, void 0, function* () {
+        return __awaiter$b(this, void 0, void 0, function* () {
             const lightIndex = (_d = (_c = (_b = (_a = this.gltf.nodes) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.extensions) === null || _c === void 0 ? void 0 : _c[this.name]) === null || _d === void 0 ? void 0 : _d.light;
             if (lightIndex === undefined)
                 return undefined;
@@ -1322,7 +1322,7 @@ class GLTFLightsExtension extends AttachmentExtension {
     }
 }
 
-var __awaiter$9 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$a = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1340,7 +1340,7 @@ class GLTFMaterialsClearcoatExtension extends MeshExtension {
     constructor() {
         super(...arguments);
         this.name = EXTENSIONS.KHR_MATERIALS_CLEARCOAT;
-        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$9(this, void 0, void 0, function* () {
+        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$a(this, void 0, void 0, function* () {
             var _a, _b;
             const materialDef = (_a = this.gltf.materials) === null || _a === void 0 ? void 0 : _a[materialIndex];
             if (!!!((_b = materialDef === null || materialDef === void 0 ? void 0 : materialDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
@@ -1380,7 +1380,7 @@ class GLTFMaterialsClearcoatExtension extends MeshExtension {
     }
 }
 
-var __awaiter$8 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$9 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1393,7 +1393,7 @@ class GLTFMaterialsIorExtension extends MeshExtension {
     constructor() {
         super(...arguments);
         this.name = EXTENSIONS.KHR_MATERIALS_IOR;
-        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$8(this, void 0, void 0, function* () {
+        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$9(this, void 0, void 0, function* () {
             var _a, _b;
             const materialDef = (_a = this.gltf.materials) === null || _a === void 0 ? void 0 : _a[materialIndex];
             if (!!!((_b = materialDef === null || materialDef === void 0 ? void 0 : materialDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
@@ -1414,7 +1414,7 @@ class GLTFMaterialsIorExtension extends MeshExtension {
     }
 }
 
-var __awaiter$7 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$8 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1594,7 +1594,7 @@ class GLTFMaterialsPbrSpecularGlossinessExtension extends MeshExtension {
             "envMapIntensity",
             "refractionRatio",
         ];
-        this.extendParams = (params, materialDef) => __awaiter$7(this, void 0, void 0, function* () {
+        this.extendParams = (params, materialDef) => __awaiter$8(this, void 0, void 0, function* () {
             var _a;
             const pbrSpecularGlossiness = (_a = materialDef.extensions) === null || _a === void 0 ? void 0 : _a[this.name];
             if (!!!pbrSpecularGlossiness) {
@@ -1724,7 +1724,7 @@ class GLTFMaterialsSheenExtension extends MeshExtension {
     }
 }
 
-var __awaiter$6 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$7 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1742,7 +1742,7 @@ class GLTFMaterialsSpecularExtension extends MeshExtension {
     constructor() {
         super(...arguments);
         this.name = EXTENSIONS.KHR_MATERIALS_SPECULAR;
-        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$6(this, void 0, void 0, function* () {
+        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$7(this, void 0, void 0, function* () {
             var _a, _b;
             const materialDef = (_a = this.gltf.materials) === null || _a === void 0 ? void 0 : _a[materialIndex];
             if (!!!((_b = materialDef === null || materialDef === void 0 ? void 0 : materialDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
@@ -1780,7 +1780,7 @@ class GLTFMaterialsSpecularExtension extends MeshExtension {
     }
 }
 
-var __awaiter$5 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$6 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1799,7 +1799,7 @@ class GLTFMaterialsTransmissionExtension extends MeshExtension {
     constructor() {
         super(...arguments);
         this.name = EXTENSIONS.KHR_MATERIALS_TRANSMISSION;
-        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$5(this, void 0, void 0, function* () {
+        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$6(this, void 0, void 0, function* () {
             var _a, _b;
             const materialDef = (_a = this.gltf.materials) === null || _a === void 0 ? void 0 : _a[materialIndex];
             if (!!!((_b = materialDef === null || materialDef === void 0 ? void 0 : materialDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
@@ -1896,7 +1896,7 @@ class GLTFMaterialsVolumeExtension extends MeshExtension {
     }
 }
 
-var __awaiter$4 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$5 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1917,7 +1917,7 @@ class GLTFMeshoptCompressionExtension extends BufferViewExtension {
     }
     loadBufferView(index) {
         var _a;
-        return __awaiter$4(this, void 0, void 0, function* () {
+        return __awaiter$5(this, void 0, void 0, function* () {
             const bufferView = (_a = this.gltf.bufferViews) === null || _a === void 0 ? void 0 : _a[index];
             if (bufferView &&
                 bufferView.extensions &&
@@ -1951,7 +1951,7 @@ class GLTFMeshoptCompressionExtension extends BufferViewExtension {
     }
 }
 
-var __awaiter$3 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$4 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1973,7 +1973,7 @@ class GLTFTextureBasisUExtension extends TextureExtension {
     }
     loadTexture(textureIndex) {
         var _a, _b, _c;
-        return __awaiter$3(this, void 0, void 0, function* () {
+        return __awaiter$4(this, void 0, void 0, function* () {
             const textureDef = (_a = this.gltf.textures) === null || _a === void 0 ? void 0 : _a[textureIndex];
             if (!!!((_b = textureDef === null || textureDef === void 0 ? void 0 : textureDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
                 return;
@@ -2071,7 +2071,7 @@ class GLTFTextureTransformExtension extends TextureExtraExtension {
     }
 }
 
-var __awaiter$2 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$3 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -2092,7 +2092,7 @@ class GLTFTextureWebPExtension extends TextureExtension {
     }
     loadTexture(textureIndex) {
         var _a, _b, _c;
-        return __awaiter$2(this, void 0, void 0, function* () {
+        return __awaiter$3(this, void 0, void 0, function* () {
             const textureDef = (_a = this.gltf.textures) === null || _a === void 0 ? void 0 : _a[textureIndex];
             if (!!!((_b = textureDef === null || textureDef === void 0 ? void 0 : textureDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
                 return;
@@ -2173,7 +2173,7 @@ class GLTFMeshQuantizationExtension extends GLTFExtension {
     }
 }
 
-var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$2 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -2216,7 +2216,7 @@ class KTX2Loader {
                 (config.pvrtcSupported ? 0x1 << 5 : 0);
     }
     loadTexture(context, resource) {
-        return __awaiter$1(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const arrayBuffer = yield context.callNative("ktx2", "decode", {
                 resource,
                 extensionFlag: this.extensionFlag,
@@ -2266,6 +2266,39 @@ class KTX2Loader {
                     : Three__namespace.LinearEncoding;
             texture.premultiplyAlpha = !!(dfdFlags & KTX2_ALPHA_PREMULTIPLIED);
             return texture;
+        });
+    }
+}
+
+var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+class GLTFMaterialsVariantsExtension extends GLTFExtension {
+    constructor() {
+        super(...arguments);
+        this.name = EXTENSIONS.KHR_MATERIALS_VARIANTS;
+        this.variants = [];
+        this.variantCallback = [];
+        this.markRefs = () => {
+            var _a, _b;
+            const variants = (_b = (_a = this.gltf.extensions) === null || _a === void 0 ? void 0 : _a[this.name]) === null || _b === void 0 ? void 0 : _b["variants"];
+            if (!!!variants) {
+                return;
+            }
+            this.variants = variants;
+        };
+    }
+    changeVariant(index) {
+        return __awaiter$1(this, void 0, void 0, function* () {
+            for (let callback of this.variantCallback) {
+                yield callback(index);
+            }
         });
     }
 }
@@ -2605,7 +2638,7 @@ class GLTFLoader extends Three__namespace.Loader {
             if (gltf.extensionsUsed) {
                 for (let i = 0; i < gltf.extensionsUsed.length; ++i) {
                     const extensionName = gltf.extensionsUsed[i];
-                    const extensionsRequired = gltf.extensionsRequired || [];
+                    gltf.extensionsRequired || [];
                     switch (extensionName) {
                         case EXTENSIONS.KHR_MATERIALS_UNLIT:
                             gltfParser.extensions[extensionName] =
@@ -2627,11 +2660,13 @@ class GLTFLoader extends Three__namespace.Loader {
                             gltfParser.extensions[extensionName] =
                                 new GLTFMeshQuantizationExtension(gltfParser);
                             break;
+                        case EXTENSIONS.KHR_MATERIALS_VARIANTS:
+                            gltfParser.extensions[extensionName] =
+                                new GLTFMaterialsVariantsExtension(gltfParser);
+                            break;
                         default:
-                            if (extensionsRequired.indexOf(extensionName) >= 0 &&
-                                gltfParser.extensions[extensionName] === undefined) {
-                                console.warn('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
-                            }
+                            doric.logw('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                            break;
                     }
                 }
             }
@@ -2708,7 +2743,15 @@ class GLTFParser {
             extensions.forEach((ext) => {
                 ext.afterRoot && ext.afterRoot();
             });
-            return result;
+            if (this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
+                const extension = this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
+                return Object.assign(Object.assign({}, result), { variants: extension.variants, variantChanger: (idx) => __awaiter(this, void 0, void 0, function* () {
+                        yield extension.changeVariant(idx);
+                    }) });
+            }
+            else {
+                return result;
+            }
         });
     }
     /**
@@ -3118,7 +3161,7 @@ class GLTFParser {
      * @return {Promise<Group|Mesh|SkinnedMesh>}
      */
     loadMesh(meshIndex) {
-        var _a;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const extensions = this.extensions;
             const meshDef = (_a = this.gltf.meshes) === null || _a === void 0 ? void 0 : _a[meshIndex];
@@ -3127,25 +3170,21 @@ class GLTFParser {
                 return;
             }
             const pending = [];
-            primitives.forEach((e) => {
-                if (e.material !== undefined) {
-                    pending.push(this.getDependency("material", e.material));
-                }
-                else {
-                    pending.push(createDefaultMaterial());
-                }
-            });
             pending.push(this.loadGeometries(primitives));
-            const results = yield Promise.all(pending);
-            const materials = results.slice(0, results.length - 1);
-            const geometries = results[results.length - 1];
+            const geometries = yield this.loadGeometries(primitives);
             const meshes = [];
-            for (let i = 0; i < geometries.length; i++) {
+            for (let i = 0; i < primitives.length; i++) {
                 const geometry = geometries[i];
                 const primitive = primitives[i];
                 // 1. create Mesh
                 let mesh;
-                const material = materials[i];
+                let material;
+                if (primitive.material !== undefined) {
+                    material = yield this.getDependency("material", primitive.material);
+                }
+                else {
+                    material = createDefaultMaterial();
+                }
                 if (primitive.mode === WEBGL_CONSTANTS.TRIANGLES ||
                     primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP ||
                     primitive.mode === WEBGL_CONSTANTS.TRIANGLE_FAN ||
@@ -3182,6 +3221,21 @@ class GLTFParser {
                 }
                 else {
                     throw new Error("THREE.GLTFLoader: Primitive mode unsupported: " + primitive.mode);
+                }
+                if ((_b = primitive.extensions) === null || _b === void 0 ? void 0 : _b[EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
+                    const extension = this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
+                    const variantMapping = primitive.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
+                    extension.variantCallback.push((variantIndex) => __awaiter(this, void 0, void 0, function* () {
+                        var _c;
+                        const materialIdx = (_c = variantMapping.mappings.find((e) => e.variants.filter((v) => v === variantIndex).length > 0)) === null || _c === void 0 ? void 0 : _c.material;
+                        if (materialIdx === undefined) {
+                            doric.loge(`${extension.name} error: change variant ${variantIndex} at mesh${meshIndex},primitive${i}`);
+                        }
+                        else {
+                            const newMaterial = yield this.getDependency("material", materialIdx);
+                            mesh.material = newMaterial;
+                        }
+                    }));
                 }
                 if (Object.keys(mesh.geometry.morphAttributes).length > 0) {
                     updateMorphTargets(mesh, meshDef);

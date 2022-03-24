@@ -21,6 +21,7 @@ import {
   ScaleType,
 } from "doric";
 import { DemoData } from "./data";
+import { GLTFViewer } from "./GLTFViewer";
 import { LoaderPanel } from "./Loader";
 import { webgl_loader_texture_ktx2 } from "./webgl_loader_texture_ktx2";
 
@@ -104,7 +105,7 @@ class ListVM extends ViewModel<ExamplesData, ListVH> {
                   extra: { index },
                 });
               } else {
-                navigator(this.context).push(LoaderPanel, {
+                navigator(this.context).push(GLTFViewer, {
                   extra: { index },
                 });
               }

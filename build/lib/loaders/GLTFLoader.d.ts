@@ -14,6 +14,10 @@ export declare type GLTF = {
         texture: Three.Texture;
         resource: Resource;
     }[];
+    variants?: {
+        name: string;
+    }[];
+    variantChanger?: (index: number) => Promise<void>;
 };
 export declare class GLTFLoader extends Three.Loader {
     context: BridgeContext;

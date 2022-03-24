@@ -49,6 +49,7 @@ import {
 } from "./Interpolation";
 import { GLTFMeshQuantizationExtension } from "./extensions/GLTFMeshQuantizationExtension";
 import { KTX2Loader } from "./KTX2Loader";
+import { GLTFMaterialsVariantsExtension } from "./extensions/GLTFMaterialsVariantsExtension";
 
 export async function loadGLTF(
   context: BridgeContext,
@@ -70,6 +71,8 @@ export type GLTF = {
     texture: Three.Texture;
     resource: Resource;
   }[];
+  variants?: { name: string }[];
+  variantChanger?: (index: number) => Promise<void>;
 };
 
 /* BINARY EXTENSION */
@@ -494,16 +497,15 @@ export class GLTFLoader extends Three.Loader {
             gltfParser.extensions[extensionName] =
               new GLTFMeshQuantizationExtension(gltfParser);
             break;
-
+          case EXTENSIONS.KHR_MATERIALS_VARIANTS:
+            gltfParser.extensions[extensionName] =
+              new GLTFMaterialsVariantsExtension(gltfParser);
+            break;
           default:
-            if (
-              extensionsRequired.indexOf(extensionName) >= 0 &&
-              gltfParser.extensions[extensionName] === undefined
-            ) {
-              console.warn(
-                'THREE.GLTFLoader: Unknown extension "' + extensionName + '".'
-              );
-            }
+            logw(
+              'THREE.GLTFLoader: Unknown extension "' + extensionName + '".'
+            );
+            break;
         }
       }
     }
@@ -608,7 +610,20 @@ class GLTFParser implements GLTFContext {
     extensions.forEach((ext) => {
       ext.afterRoot && ext.afterRoot();
     });
-    return result;
+    if (this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
+      const extension = this.extensions[
+        EXTENSIONS.KHR_MATERIALS_VARIANTS
+      ] as GLTFMaterialsVariantsExtension;
+      return {
+        ...result,
+        variants: extension.variants,
+        variantChanger: async (idx: number) => {
+          await extension.changeVariant(idx);
+        },
+      };
+    } else {
+      return result;
+    }
   }
   /**
    * Requests all dependencies of the specified type asynchronously, with caching.
@@ -1181,25 +1196,13 @@ class GLTFParser implements GLTFContext {
       Promise<Three.Material | Array<Three.BufferGeometry>> | Three.Material
     > = [];
 
-    primitives.forEach((e) => {
-      if (e.material !== undefined) {
-        pending.push(
-          this.getDependency<Three.Material>("material", e.material)
-        );
-      } else {
-        pending.push(createDefaultMaterial());
-      }
-    });
-
     pending.push(this.loadGeometries(primitives));
-    const results = await Promise.all(pending);
-    const materials = results.slice(0, results.length - 1) as Three.Material[];
-    const geometries = results[results.length - 1] as Three.BufferGeometry[];
-
+    const geometries = await this.loadGeometries(primitives);
     const meshes = [];
 
-    for (let i = 0; i < geometries.length; i++) {
+    for (let i = 0; i < primitives.length; i++) {
       const geometry = geometries[i];
+
       const primitive = primitives[i];
 
       // 1. create Mesh
@@ -1211,7 +1214,16 @@ class GLTFParser implements GLTFContext {
         | Three.LineLoop
         | Three.Points;
 
-      const material = materials[i];
+      let material: Three.Material;
+
+      if (primitive.material !== undefined) {
+        material = await this.getDependency<Three.Material>(
+          "material",
+          primitive.material
+        );
+      } else {
+        material = createDefaultMaterial();
+      }
       if (
         primitive.mode === WEBGL_CONSTANTS.TRIANGLES ||
         primitive.mode === WEBGL_CONSTANTS.TRIANGLE_STRIP ||
@@ -1256,7 +1268,34 @@ class GLTFParser implements GLTFContext {
           "THREE.GLTFLoader: Primitive mode unsupported: " + primitive.mode
         );
       }
+      if (primitive.extensions?.[EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
+        const extension = this.extensions[
+          EXTENSIONS.KHR_MATERIALS_VARIANTS
+        ] as GLTFMaterialsVariantsExtension;
+        const variantMapping: {
+          mappings: {
+            material: number;
+            variants: number[];
+          }[];
+        } = primitive.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
 
+        extension.variantCallback.push(async (variantIndex) => {
+          const materialIdx = variantMapping.mappings.find(
+            (e) => e.variants.filter((v) => v === variantIndex).length > 0
+          )?.material;
+          if (materialIdx === undefined) {
+            loge(
+              `${extension.name} error: change variant ${variantIndex} at mesh${meshIndex},primitive${i}`
+            );
+          } else {
+            const newMaterial = await this.getDependency<Three.Material>(
+              "material",
+              materialIdx
+            );
+            mesh.material = newMaterial;
+          }
+        });
+      }
       if (Object.keys(mesh.geometry.morphAttributes).length > 0) {
         updateMorphTargets(mesh, meshDef);
       }

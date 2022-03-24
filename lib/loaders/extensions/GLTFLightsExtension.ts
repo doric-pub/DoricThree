@@ -1,6 +1,7 @@
 import { AttachmentExtension, EXTENSIONS } from "./GLTFExtensions";
 import * as Three from "three";
 import { createUniqueName } from "../GLTFUtils";
+import { loge } from "doric/lib/src/util/log";
 
 /**
  * Punctual Lights Extension
@@ -34,7 +35,7 @@ export class GLTFLightsExtension extends AttachmentExtension {
     }
   };
   async createNodeAttachment(index: number) {
-    const lightIndex = this.gltf.node?.[index]?.extensions?.[this.name]?.light;
+    const lightIndex = this.gltf.nodes?.[index]?.extensions?.[this.name]?.light;
     if (lightIndex === undefined) return undefined;
     const cacheKey = "light:" + lightIndex;
     let dependency = this.context.getCache(cacheKey);
@@ -105,6 +106,7 @@ export class GLTFLightsExtension extends AttachmentExtension {
     ret.name = createUniqueName(lightDef.name || "light_" + lightIndex);
     dependency = Promise.resolve(ret);
     this.context.addCache(cacheKey, dependency);
+    loge(`Create light`, ret.name);
     return dependency;
   }
 }

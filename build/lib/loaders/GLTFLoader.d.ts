@@ -7,7 +7,7 @@ export declare type GLTF = {
     scene: THREE.Scene;
     scenes: THREE.Scene[];
     animations: THREE.AnimationClip[];
-    cameras: THREE.Camera[];
+    cameras: (THREE.PerspectiveCamera | THREE.OrthographicCamera)[];
     asset: GSpec.Asset;
     userData: {};
     pendingTextures: {

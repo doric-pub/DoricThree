@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { AttachmentExtension, EXTENSIONS } from "./GLTFExtensions";
 import * as Three from "three";
 import { createUniqueName } from "../GLTFUtils";
+import { loge } from "doric/lib/src/util/log";
 /**
  * Punctual Lights Extension
  *
@@ -36,7 +37,7 @@ export class GLTFLightsExtension extends AttachmentExtension {
     createNodeAttachment(index) {
         var _a, _b, _c, _d, _e, _f, _g;
         return __awaiter(this, void 0, void 0, function* () {
-            const lightIndex = (_d = (_c = (_b = (_a = this.gltf.node) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.extensions) === null || _c === void 0 ? void 0 : _c[this.name]) === null || _d === void 0 ? void 0 : _d.light;
+            const lightIndex = (_d = (_c = (_b = (_a = this.gltf.nodes) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.extensions) === null || _c === void 0 ? void 0 : _c[this.name]) === null || _d === void 0 ? void 0 : _d.light;
             if (lightIndex === undefined)
                 return undefined;
             const cacheKey = "light:" + lightIndex;
@@ -101,6 +102,7 @@ export class GLTFLightsExtension extends AttachmentExtension {
             ret.name = createUniqueName(lightDef.name || "light_" + lightIndex);
             dependency = Promise.resolve(ret);
             this.context.addCache(cacheKey, dependency);
+            loge(`Create light`, ret.name);
             return dependency;
         });
     }

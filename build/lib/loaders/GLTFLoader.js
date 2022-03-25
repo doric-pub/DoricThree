@@ -1099,7 +1099,7 @@ class GLTFParser {
             if (cameraDef.name)
                 camera.name = createUniqueName(cameraDef.name);
             assignExtrasToUserData(camera, cameraDef);
-            return Promise.resolve(camera);
+            return camera;
         });
     }
     /**

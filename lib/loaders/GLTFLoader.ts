@@ -1496,8 +1496,7 @@ class GLTFParser implements GLTFContext {
     if (cameraDef.name) camera.name = createUniqueName(cameraDef.name);
 
     assignExtrasToUserData(camera, cameraDef);
-
-    return Promise.resolve(camera);
+    return camera;
   }
   /**
    * Specification: https://github.com/KhronosGroup/glTF/tree/master/specification/2.0#skins

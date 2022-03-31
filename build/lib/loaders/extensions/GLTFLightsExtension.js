@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { AttachmentExtension, EXTENSIONS } from "./GLTFExtensions";
 import * as Three from "three";
 import { createUniqueName } from "../GLTFUtils";
-import { loge } from "doric/lib/src/util/log";
 /**
  * Punctual Lights Extension
  *
@@ -102,7 +101,6 @@ export class GLTFLightsExtension extends AttachmentExtension {
             ret.name = createUniqueName(lightDef.name || "light_" + lightIndex);
             dependency = Promise.resolve(ret);
             this.context.addCache(cacheKey, dependency);
-            loge(`Create light`, ret.name);
             return dependency;
         });
     }

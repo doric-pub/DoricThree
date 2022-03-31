@@ -8,42 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { imageDecoder } from "doric";
-import THREE, { Loader } from "three";
-import { UnifiedResource } from "../utils";
-export class TextureLoader extends Loader {
-    constructor(context, manager) {
-        super(manager);
-        this.context = context;
-    }
-    load(res, onLoad, onError) {
-        let texture = new THREE.DataTexture();
-        texture.format = THREE.RGBAFormat;
-        const url = res.url;
-        let link;
-        if (this.path !== "" && this.path !== undefined) {
-            link = this.path + url;
-        }
-        else {
-            link = url;
-        }
-        const assetsResource = new UnifiedResource(res.type, link);
-        const context = this.context;
-        (function () {
-            return __awaiter(this, void 0, void 0, function* () {
-                const imageInfo = yield imageDecoder(context).getImageInfo(assetsResource);
-                const imagePixels = yield imageDecoder(context).decodeToPixels(assetsResource);
-                texture.image = {
-                    data: new Uint8ClampedArray(imagePixels),
-                    width: imageInfo.width,
-                    height: imageInfo.height,
-                };
-                texture.needsUpdate = true;
-                if (onLoad !== undefined) {
-                    onLoad(texture);
-                }
-            });
-        })();
-        return texture;
+import { DataTexture, RGBAFormat } from "three";
+export class TextureLoader {
+    load(context, resource) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const texture = new DataTexture();
+            texture.format = RGBAFormat;
+            const imageInfo = yield imageDecoder(context).getImageInfo(resource);
+            const imagePixels = yield imageDecoder(context).decodeToPixels(resource);
+            texture.image = {
+                data: new Uint8ClampedArray(imagePixels),
+                width: imageInfo.width,
+                height: imageInfo.height,
+            };
+            texture.needsUpdate = true;
+            return texture;
+        });
     }
 }
 //# sourceMappingURL=TextureLoader.js.map

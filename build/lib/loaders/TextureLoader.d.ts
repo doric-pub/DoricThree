@@ -1,10 +1,5 @@
-import { BridgeContext } from "doric";
-import THREE, { Loader, LoadingManager } from "three";
-export declare class TextureLoader extends Loader {
-    context: BridgeContext;
-    constructor(context: BridgeContext, manager?: LoadingManager);
-    load(res: {
-        url: string;
-        type: string;
-    }, onLoad: Function, onError: Function): THREE.DataTexture;
+import { Resource, BridgeContext } from "doric";
+import { DataTexture } from "three";
+export declare class TextureLoader {
+    load(context: BridgeContext, resource: Resource): Promise<DataTexture>;
 }

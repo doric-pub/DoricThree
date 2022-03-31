@@ -383,7 +383,9 @@ export class GLTFLoader extends Three.Loader {
                                 new GLTFMaterialsVariantsExtension(gltfParser);
                             break;
                         default:
-                            logw('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                            if (!!!gltfParser.extensions[extensionName]) {
+                                logw('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                            }
                             break;
                     }
                 }

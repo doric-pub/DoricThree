@@ -61,8 +61,8 @@ export async function loadGLTF(
 }
 
 export type GLTF = {
-  scene: THREE.Scene;
-  scenes: THREE.Scene[];
+  scene: THREE.Group;
+  scenes: THREE.Group[];
   animations: THREE.AnimationClip[];
   cameras: (THREE.PerspectiveCamera | THREE.OrthographicCamera)[];
   asset: GSpec.Asset;
@@ -502,9 +502,11 @@ export class GLTFLoader extends Three.Loader {
               new GLTFMaterialsVariantsExtension(gltfParser);
             break;
           default:
-            logw(
-              'THREE.GLTFLoader: Unknown extension "' + extensionName + '".'
-            );
+            if (!!!gltfParser.extensions[extensionName]) {
+              logw(
+                'THREE.GLTFLoader: Unknown extension "' + extensionName + '".'
+              );
+            }
             break;
         }
       }

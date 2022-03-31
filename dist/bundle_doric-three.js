@@ -1108,7 +1108,7 @@ function loge(...message) {
     nativeLog('e', out);
 }
 
-var __awaiter$c = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$e = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1139,7 +1139,7 @@ class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     }
     decodePrimitive(primitive) {
         var _a;
-        return __awaiter$c(this, void 0, void 0, function* () {
+        return __awaiter$e(this, void 0, void 0, function* () {
             const bufferViewIndex = primitive.extensions[this.name].bufferView;
             const extensionAttributes = primitive.extensions[this.name].attributes;
             const threeAttributeMap = {};
@@ -1175,7 +1175,7 @@ class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     }
     decodeDracoFile(buffer, attributeIDs, attributeTypes) {
         var _a;
-        return __awaiter$c(this, void 0, void 0, function* () {
+        return __awaiter$e(this, void 0, void 0, function* () {
             const ret = (yield this.context.bridgeContext.callNative("draco", "decode", {
                 buffer,
                 attributeIDs,
@@ -1216,7 +1216,7 @@ class GLTFDracoMeshCompressionExtension extends PremitiveExtension {
     }
 }
 
-var __awaiter$b = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$d = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1250,7 +1250,7 @@ class GLTFLightsExtension extends AttachmentExtension {
     }
     createNodeAttachment(index) {
         var _a, _b, _c, _d, _e, _f, _g;
-        return __awaiter$b(this, void 0, void 0, function* () {
+        return __awaiter$d(this, void 0, void 0, function* () {
             const lightIndex = (_d = (_c = (_b = (_a = this.gltf.nodes) === null || _a === void 0 ? void 0 : _a[index]) === null || _b === void 0 ? void 0 : _b.extensions) === null || _c === void 0 ? void 0 : _c[this.name]) === null || _d === void 0 ? void 0 : _d.light;
             if (lightIndex === undefined)
                 return undefined;
@@ -1316,13 +1316,12 @@ class GLTFLightsExtension extends AttachmentExtension {
             ret.name = createUniqueName(lightDef.name || "light_" + lightIndex);
             dependency = Promise.resolve(ret);
             this.context.addCache(cacheKey, dependency);
-            loge(`Create light`, ret.name);
             return dependency;
         });
     }
 }
 
-var __awaiter$a = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$c = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1340,7 +1339,7 @@ class GLTFMaterialsClearcoatExtension extends MeshExtension {
     constructor() {
         super(...arguments);
         this.name = EXTENSIONS.KHR_MATERIALS_CLEARCOAT;
-        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$a(this, void 0, void 0, function* () {
+        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$c(this, void 0, void 0, function* () {
             var _a, _b;
             const materialDef = (_a = this.gltf.materials) === null || _a === void 0 ? void 0 : _a[materialIndex];
             if (!!!((_b = materialDef === null || materialDef === void 0 ? void 0 : materialDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
@@ -1380,7 +1379,7 @@ class GLTFMaterialsClearcoatExtension extends MeshExtension {
     }
 }
 
-var __awaiter$9 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$b = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1393,7 +1392,7 @@ class GLTFMaterialsIorExtension extends MeshExtension {
     constructor() {
         super(...arguments);
         this.name = EXTENSIONS.KHR_MATERIALS_IOR;
-        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$9(this, void 0, void 0, function* () {
+        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$b(this, void 0, void 0, function* () {
             var _a, _b;
             const materialDef = (_a = this.gltf.materials) === null || _a === void 0 ? void 0 : _a[materialIndex];
             if (!!!((_b = materialDef === null || materialDef === void 0 ? void 0 : materialDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
@@ -1414,7 +1413,7 @@ class GLTFMaterialsIorExtension extends MeshExtension {
     }
 }
 
-var __awaiter$8 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$a = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1594,7 +1593,7 @@ class GLTFMaterialsPbrSpecularGlossinessExtension extends MeshExtension {
             "envMapIntensity",
             "refractionRatio",
         ];
-        this.extendParams = (params, materialDef) => __awaiter$8(this, void 0, void 0, function* () {
+        this.extendParams = (params, materialDef) => __awaiter$a(this, void 0, void 0, function* () {
             var _a;
             const pbrSpecularGlossiness = (_a = materialDef.extensions) === null || _a === void 0 ? void 0 : _a[this.name];
             if (!!!pbrSpecularGlossiness) {
@@ -1724,7 +1723,7 @@ class GLTFMaterialsSheenExtension extends MeshExtension {
     }
 }
 
-var __awaiter$7 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$9 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1742,7 +1741,7 @@ class GLTFMaterialsSpecularExtension extends MeshExtension {
     constructor() {
         super(...arguments);
         this.name = EXTENSIONS.KHR_MATERIALS_SPECULAR;
-        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$7(this, void 0, void 0, function* () {
+        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$9(this, void 0, void 0, function* () {
             var _a, _b;
             const materialDef = (_a = this.gltf.materials) === null || _a === void 0 ? void 0 : _a[materialIndex];
             if (!!!((_b = materialDef === null || materialDef === void 0 ? void 0 : materialDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
@@ -1780,7 +1779,7 @@ class GLTFMaterialsSpecularExtension extends MeshExtension {
     }
 }
 
-var __awaiter$6 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$8 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1799,7 +1798,7 @@ class GLTFMaterialsTransmissionExtension extends MeshExtension {
     constructor() {
         super(...arguments);
         this.name = EXTENSIONS.KHR_MATERIALS_TRANSMISSION;
-        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$6(this, void 0, void 0, function* () {
+        this.extendMaterialParams = (materialIndex, materialParams) => __awaiter$8(this, void 0, void 0, function* () {
             var _a, _b;
             const materialDef = (_a = this.gltf.materials) === null || _a === void 0 ? void 0 : _a[materialIndex];
             if (!!!((_b = materialDef === null || materialDef === void 0 ? void 0 : materialDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
@@ -1896,7 +1895,7 @@ class GLTFMaterialsVolumeExtension extends MeshExtension {
     }
 }
 
-var __awaiter$5 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$7 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1917,7 +1916,7 @@ class GLTFMeshoptCompressionExtension extends BufferViewExtension {
     }
     loadBufferView(index) {
         var _a;
-        return __awaiter$5(this, void 0, void 0, function* () {
+        return __awaiter$7(this, void 0, void 0, function* () {
             const bufferView = (_a = this.gltf.bufferViews) === null || _a === void 0 ? void 0 : _a[index];
             if (bufferView &&
                 bufferView.extensions &&
@@ -1951,7 +1950,7 @@ class GLTFMeshoptCompressionExtension extends BufferViewExtension {
     }
 }
 
-var __awaiter$4 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$6 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -1973,7 +1972,7 @@ class GLTFTextureBasisUExtension extends TextureExtension {
     }
     loadTexture(textureIndex) {
         var _a, _b, _c;
-        return __awaiter$4(this, void 0, void 0, function* () {
+        return __awaiter$6(this, void 0, void 0, function* () {
             const textureDef = (_a = this.gltf.textures) === null || _a === void 0 ? void 0 : _a[textureIndex];
             if (!!!((_b = textureDef === null || textureDef === void 0 ? void 0 : textureDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
                 return;
@@ -2071,7 +2070,7 @@ class GLTFTextureTransformExtension extends TextureExtraExtension {
     }
 }
 
-var __awaiter$3 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$5 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -2092,7 +2091,7 @@ class GLTFTextureWebPExtension extends TextureExtension {
     }
     loadTexture(textureIndex) {
         var _a, _b, _c;
-        return __awaiter$3(this, void 0, void 0, function* () {
+        return __awaiter$5(this, void 0, void 0, function* () {
             const textureDef = (_a = this.gltf.textures) === null || _a === void 0 ? void 0 : _a[textureIndex];
             if (!!!((_b = textureDef === null || textureDef === void 0 ? void 0 : textureDef.extensions) === null || _b === void 0 ? void 0 : _b[this.name])) {
                 return;
@@ -2173,7 +2172,7 @@ class GLTFMeshQuantizationExtension extends GLTFExtension {
     }
 }
 
-var __awaiter$2 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$4 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -2216,7 +2215,7 @@ class KTX2Loader {
                 (config.pvrtcSupported ? 0x1 << 5 : 0);
     }
     loadTexture(context, resource) {
-        return __awaiter$2(this, void 0, void 0, function* () {
+        return __awaiter$4(this, void 0, void 0, function* () {
             const arrayBuffer = yield context.callNative("ktx2", "decode", {
                 resource,
                 extensionFlag: this.extensionFlag,
@@ -2270,7 +2269,7 @@ class KTX2Loader {
     }
 }
 
-var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$3 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -2295,7 +2294,7 @@ class GLTFMaterialsVariantsExtension extends GLTFExtension {
         };
     }
     changeVariant(index) {
-        return __awaiter$1(this, void 0, void 0, function* () {
+        return __awaiter$3(this, void 0, void 0, function* () {
             for (let callback of this.variantCallback) {
                 yield callback(index);
             }
@@ -2303,7 +2302,7 @@ class GLTFMaterialsVariantsExtension extends GLTFExtension {
     }
 }
 
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+var __awaiter$2 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -2313,7 +2312,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
     });
 };
 function loadGLTF(context, resource, asyncTexture = false) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return __awaiter$2(this, void 0, void 0, function* () {
         const loader = new GLTFLoader(context);
         return loader.load(resource, asyncTexture);
     });
@@ -2585,7 +2584,7 @@ class GLTFLoader extends Three__namespace.Loader {
         this.renderer = renderer;
     }
     loadTexture(pendingTexture) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const { texture, resource } = pendingTexture;
             const imageInfo = yield doric.imageDecoder(this.context).getImageInfo(resource);
             const imagePixels = yield doric.imageDecoder(this.context).decodeToPixels(resource);
@@ -2599,7 +2598,7 @@ class GLTFLoader extends Three__namespace.Loader {
         });
     }
     load(resource, asyncTexture = false) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const url = resource.identifier;
             const data = yield doric.resourceLoader(this.context).load(resource);
             const magic = Three__namespace.LoaderUtils.decodeText(new Uint8Array(data, 0, 4));
@@ -2665,7 +2664,9 @@ class GLTFLoader extends Three__namespace.Loader {
                                 new GLTFMaterialsVariantsExtension(gltfParser);
                             break;
                         default:
-                            doric.logw('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                            if (!!!gltfParser.extensions[extensionName]) {
+                                doric.logw('THREE.GLTFLoader: Unknown extension "' + extensionName + '".');
+                            }
                             break;
                     }
                 }
@@ -2712,7 +2713,7 @@ class GLTFParser {
         return this.cache.get(n);
     }
     parse() {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const extensions = Object.values(this.extensions);
             // Clear the loader cache
             this.cache.clear();
@@ -2745,7 +2746,7 @@ class GLTFParser {
             });
             if (this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
                 const extension = this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
-                return Object.assign(Object.assign({}, result), { variants: extension.variants, variantChanger: (idx) => __awaiter(this, void 0, void 0, function* () {
+                return Object.assign(Object.assign({}, result), { variants: extension.variants, variantChanger: (idx) => __awaiter$2(this, void 0, void 0, function* () {
                         yield extension.changeVariant(idx);
                     }) });
             }
@@ -2760,7 +2761,7 @@ class GLTFParser {
      * @return {Promise<Array<Object>>}
      */
     getDependencies(type) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             let dependencies = this.getCache(type);
             if (!dependencies) {
                 const defs = this.gltf[type + (type === "mesh" ? "es" : "s")] || [];
@@ -2782,7 +2783,7 @@ class GLTFParser {
      */
     loadAccessor(accessorIndex) {
         var _a, _b;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const accessorDef = (_a = this.gltf.accessors) === null || _a === void 0 ? void 0 : _a[accessorIndex];
             if (!!!accessorDef) {
                 return;
@@ -2882,7 +2883,7 @@ class GLTFParser {
      */
     loadBufferView(bufferViewIndex) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const bufferViewDef = (_a = this.gltf.bufferViews) === null || _a === void 0 ? void 0 : _a[bufferViewIndex];
             if (!!!bufferViewDef) {
                 return;
@@ -2913,7 +2914,7 @@ class GLTFParser {
      */
     loadBuffer(bufferIndex) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const bufferDef = (_a = this.gltf.buffers) === null || _a === void 0 ? void 0 : _a[bufferIndex];
             if (!!!bufferDef) {
                 return undefined;
@@ -3013,10 +3014,10 @@ class GLTFParser {
      * @return {Promise<BufferGeometry>}
      */
     addPrimitiveAttributes(geometry, primitiveDef) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const attributes = primitiveDef.attributes;
             const pending = [];
-            const assignAttributeAccessor = (accessorIndex, attributeName) => __awaiter(this, void 0, void 0, function* () {
+            const assignAttributeAccessor = (accessorIndex, attributeName) => __awaiter$2(this, void 0, void 0, function* () {
                 const accessor = yield this.getDependency("accessor", accessorIndex);
                 geometry.setAttribute(attributeName, accessor);
             });
@@ -3053,7 +3054,7 @@ class GLTFParser {
      * @return {Promise<BufferGeometry>}
      */
     addMorphTargets(geometry, targets) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             let hasMorphPosition = false;
             let hasMorphNormal = false;
             let hasMorphColor = false;
@@ -3123,7 +3124,7 @@ class GLTFParser {
     loadGeometries(primitives) {
         const extensions = this.extensions;
         const cache = this.primitiveCache;
-        const createDracoPrimitive = (primitive) => __awaiter(this, void 0, void 0, function* () {
+        const createDracoPrimitive = (primitive) => __awaiter$2(this, void 0, void 0, function* () {
             const geometry = yield extensions[EXTENSIONS.KHR_DRACO_MESH_COMPRESSION].decodePrimitive(primitive);
             return this.addPrimitiveAttributes(geometry, primitive);
         });
@@ -3162,7 +3163,7 @@ class GLTFParser {
      */
     loadMesh(meshIndex) {
         var _a, _b;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const extensions = this.extensions;
             const meshDef = (_a = this.gltf.meshes) === null || _a === void 0 ? void 0 : _a[meshIndex];
             const primitives = meshDef === null || meshDef === void 0 ? void 0 : meshDef.primitives;
@@ -3225,7 +3226,7 @@ class GLTFParser {
                 if ((_b = primitive.extensions) === null || _b === void 0 ? void 0 : _b[EXTENSIONS.KHR_MATERIALS_VARIANTS]) {
                     const extension = this.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
                     const variantMapping = primitive.extensions[EXTENSIONS.KHR_MATERIALS_VARIANTS];
-                    extension.variantCallback.push((variantIndex) => __awaiter(this, void 0, void 0, function* () {
+                    extension.variantCallback.push((variantIndex) => __awaiter$2(this, void 0, void 0, function* () {
                         var _c;
                         const materialIdx = (_c = variantMapping.mappings.find((e) => e.variants.filter((v) => v === variantIndex).length > 0)) === null || _c === void 0 ? void 0 : _c.material;
                         if (materialIdx === undefined) {
@@ -3273,7 +3274,7 @@ class GLTFParser {
      * @param  {Object3D} mesh Mesh, Line, or Points instance.
      */
     assignFinalMaterial(mesh) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const geometry = mesh.geometry;
             let material = mesh.material;
             const useDerivativeTangents = geometry.attributes.tangent === undefined;
@@ -3358,7 +3359,7 @@ class GLTFParser {
      */
     loadCamera(cameraIndex) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             let camera;
             const cameraDef = (_a = this.gltf.cameras) === null || _a === void 0 ? void 0 : _a[cameraIndex];
             if (!!!cameraDef) {
@@ -3391,7 +3392,7 @@ class GLTFParser {
      */
     loadSkin(skinIndex) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const skinDef = (_a = this.gltf.skins) === null || _a === void 0 ? void 0 : _a[skinIndex];
             if (!!!skinDef) {
                 return;
@@ -3477,7 +3478,7 @@ class GLTFParser {
     }
     createNodeMesh(nodeIndex) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const nodeDef = (_a = this.gltf.nodes) === null || _a === void 0 ? void 0 : _a[nodeIndex];
             if ((nodeDef === null || nodeDef === void 0 ? void 0 : nodeDef.mesh) === undefined)
                 return;
@@ -3505,7 +3506,7 @@ class GLTFParser {
      */
     loadAnimation(animationIndex) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const animationDef = (_a = this.gltf.animations) === null || _a === void 0 ? void 0 : _a[animationIndex];
             if (!!!animationDef) {
                 return;
@@ -3626,7 +3627,7 @@ class GLTFParser {
      */
     loadNode(nodeIndex) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const extensions = this.extensions;
             const nodeDef = (_a = this.gltf.nodes) === null || _a === void 0 ? void 0 : _a[nodeIndex];
             if (!!!nodeDef) {
@@ -3705,7 +3706,7 @@ class GLTFParser {
     }
     buildNodeHierarchy(nodeId, parentObject) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const nodeDef = (_a = this.gltf.nodes) === null || _a === void 0 ? void 0 : _a[nodeId];
             if (!!!nodeDef) {
                 throw new Error("buildNodeHierarchy error");
@@ -3760,7 +3761,7 @@ class GLTFParser {
      */
     loadScene(sceneIndex) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const extensions = this.extensions;
             const sceneDef = (_a = this.gltf.scenes) === null || _a === void 0 ? void 0 : _a[sceneIndex];
             if (!!!sceneDef) {
@@ -3803,7 +3804,7 @@ class GLTFParser {
         });
     }
     getDependency(type, index) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const cacheKey = type + ":" + index;
             let dependency = this.getCache(cacheKey);
             if (!!!dependency) {
@@ -3870,7 +3871,7 @@ class GLTFParser {
      */
     loadMaterial(materialIndex) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const extensions = this.extensions;
             const materialDef = (_a = this.gltf.materials) === null || _a === void 0 ? void 0 : _a[materialIndex];
             if (!!!materialDef) {
@@ -4005,7 +4006,7 @@ class GLTFParser {
      * @return {Promise<Texture>}
      */
     assignTexture(materialParams, mapName, mapDef) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             let texture = yield this.getDependency("texture", mapDef.index);
             // Materials sample aoMap from UV set 1 and other maps from UV set 0 - this can't be configured
             // However, we will copy UV set 0 to UV set 1 on demand for aoMap
@@ -4040,7 +4041,7 @@ class GLTFParser {
     }
     loadTexture(textureIndex) {
         var _a, _b;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const textureDef = (_a = this.gltf.textures) === null || _a === void 0 ? void 0 : _a[textureIndex];
             if ((textureDef === null || textureDef === void 0 ? void 0 : textureDef.source) === undefined) {
                 let dependency;
@@ -4063,7 +4064,7 @@ class GLTFParser {
     }
     loadTextureImage(textureIndex, source) {
         var _a;
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter$2(this, void 0, void 0, function* () {
             const textureDef = (_a = this.gltf.textures) === null || _a === void 0 ? void 0 : _a[textureIndex];
             if (!!!textureDef) {
                 return;
@@ -4109,7 +4110,7 @@ class GLTFParser {
     }
 }
 function loadTexture(parser, resource) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return __awaiter$2(this, void 0, void 0, function* () {
         const texture = new Three__namespace.DataTexture();
         texture.format = Three__namespace.RGBAFormat;
         if (parser.option.asyncTexture) {
@@ -4133,9 +4134,322 @@ function loadTexture(parser, resource) {
     });
 }
 
+var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+/* default error routine.  change this to change error handling */
+const rgbe_read_error = 1;
+const rgbe_write_error = 2;
+const rgbe_format_error = 3;
+const rgbe_memory_error = 4;
+const RGBE_RETURN_FAILURE = -1;
+const RGBE_VALID_PROGRAMTYPE = 1;
+const RGBE_VALID_FORMAT = 2;
+const RGBE_VALID_DIMENSIONS = 4;
+const NEWLINE = "\n";
+class Buffer extends Uint8Array {
+    constructor() {
+        super(...arguments);
+        this.pos = 0;
+    }
+}
+function rgbe_error(rgbe_error_code, msg) {
+    switch (rgbe_error_code) {
+        case rgbe_read_error:
+            doric.loge("THREE.RGBELoader Read Error: " + (msg || ""));
+            break;
+        case rgbe_write_error:
+            doric.loge("THREE.RGBELoader Write Error: " + (msg || ""));
+            break;
+        case rgbe_format_error:
+            doric.loge("THREE.RGBELoader Bad File Format: " + (msg || ""));
+            break;
+        default:
+        case rgbe_memory_error:
+            doric.loge("THREE.RGBELoader: Error: " + (msg || ""));
+    }
+    return RGBE_RETURN_FAILURE;
+}
+function fgets(buffer, lineLimit, consume) {
+    const chunkSize = 128;
+    lineLimit = !lineLimit ? 1024 : lineLimit;
+    let p = buffer.pos, i = -1, len = 0, s = "", chunk = String.fromCharCode(...new Uint16Array(buffer.subarray(p, p + chunkSize)));
+    while (0 > (i = chunk.indexOf(NEWLINE)) &&
+        len < lineLimit &&
+        p < buffer.byteLength) {
+        s += chunk;
+        len += chunk.length;
+        p += chunkSize;
+        chunk += String.fromCharCode(...new Uint16Array(buffer.subarray(p, p + chunkSize)));
+    }
+    if (-1 < i) {
+        if (false !== consume)
+            buffer.pos += len + i + 1;
+        return s + chunk.slice(0, i);
+    }
+    return false;
+}
+function RGBE_ReadHeader(buffer) {
+    // regexes to parse header info fields
+    const magic_token_re = /^#\?(\S+)/, gamma_re = /^\s*GAMMA\s*=\s*(\d+(\.\d+)?)\s*$/, exposure_re = /^\s*EXPOSURE\s*=\s*(\d+(\.\d+)?)\s*$/, format_re = /^\s*FORMAT=(\S+)\s*$/, dimensions_re = /^\s*\-Y\s+(\d+)\s+\+X\s+(\d+)\s*$/, 
+    // RGBE format header struct
+    header = {
+        valid: 0 /* indicate which fields are valid */,
+        string: "" /* the actual header string */,
+        comments: "" /* comments found in header */,
+        programtype: "RGBE" /* listed at beginning of file to identify it after "#?". defaults to "RGBE" */,
+        format: "" /* RGBE format, default 32-bit_rle_rgbe */,
+        gamma: 1.0 /* image has already been gamma corrected with given gamma. defaults to 1.0 (no correction) */,
+        exposure: 1.0 /* a value of 1.0 in an image corresponds to <exposure> watts/steradian/m^2. defaults to 1.0 */,
+        width: 0,
+        height: 0 /* image dimensions, width/height */,
+    };
+    let line, match;
+    if (buffer.pos >= buffer.byteLength || !(line = fgets(buffer))) {
+        return rgbe_error(rgbe_read_error, "no header found");
+    }
+    /* if you want to require the magic token then uncomment the next line */
+    if (!(match = line.match(magic_token_re))) {
+        return rgbe_error(rgbe_format_error, "bad initial token");
+    }
+    header.valid |= RGBE_VALID_PROGRAMTYPE;
+    header.programtype = match[1];
+    header.string += line + "\n";
+    while (true) {
+        line = fgets(buffer);
+        if (false === line)
+            break;
+        header.string += line + "\n";
+        if ("#" === line.charAt(0)) {
+            header.comments += line + "\n";
+            continue; // comment line
+        }
+        if ((match = line.match(gamma_re))) {
+            header.gamma = parseFloat(match[1]);
+        }
+        if ((match = line.match(exposure_re))) {
+            header.exposure = parseFloat(match[1]);
+        }
+        if ((match = line.match(format_re))) {
+            header.valid |= RGBE_VALID_FORMAT;
+            header.format = match[1]; //'32-bit_rle_rgbe';
+        }
+        if ((match = line.match(dimensions_re))) {
+            header.valid |= RGBE_VALID_DIMENSIONS;
+            header.height = parseInt(match[1], 10);
+            header.width = parseInt(match[2], 10);
+        }
+        if (header.valid & RGBE_VALID_FORMAT &&
+            header.valid & RGBE_VALID_DIMENSIONS)
+            break;
+    }
+    if (!(header.valid & RGBE_VALID_FORMAT)) {
+        return rgbe_error(rgbe_format_error, "missing format specifier");
+    }
+    if (!(header.valid & RGBE_VALID_DIMENSIONS)) {
+        return rgbe_error(rgbe_format_error, "missing image size specifier");
+    }
+    return header;
+}
+function RGBE_ReadPixels_RLE(buffer, w, h) {
+    const scanline_width = w;
+    if (
+    // run length encoding is not allowed so read flat
+    scanline_width < 8 ||
+        scanline_width > 0x7fff ||
+        // this file is not run length encoded
+        2 !== buffer[0] ||
+        2 !== buffer[1] ||
+        buffer[2] & 0x80) {
+        // return the flat buffer
+        return new Uint8Array(buffer);
+    }
+    if (scanline_width !== ((buffer[2] << 8) | buffer[3])) {
+        return rgbe_error(rgbe_format_error, "wrong scanline width");
+    }
+    const data_rgba = new Uint8Array(4 * w * h);
+    if (!data_rgba.length) {
+        return rgbe_error(rgbe_memory_error, "unable to allocate buffer space");
+    }
+    let offset = 0, pos = 0;
+    const ptr_end = 4 * scanline_width;
+    const rgbeStart = new Uint8Array(4);
+    const scanline_buffer = new Uint8Array(ptr_end);
+    let num_scanlines = h;
+    // read in each successive scanline
+    while (num_scanlines > 0 && pos < buffer.byteLength) {
+        if (pos + 4 > buffer.byteLength) {
+            return rgbe_error(rgbe_read_error);
+        }
+        rgbeStart[0] = buffer[pos++];
+        rgbeStart[1] = buffer[pos++];
+        rgbeStart[2] = buffer[pos++];
+        rgbeStart[3] = buffer[pos++];
+        if (2 != rgbeStart[0] ||
+            2 != rgbeStart[1] ||
+            ((rgbeStart[2] << 8) | rgbeStart[3]) != scanline_width) {
+            return rgbe_error(rgbe_format_error, "bad rgbe scanline format");
+        }
+        // read each of the four channels for the scanline into the buffer
+        // first red, then green, then blue, then exponent
+        let ptr = 0, count;
+        while (ptr < ptr_end && pos < buffer.byteLength) {
+            count = buffer[pos++];
+            const isEncodedRun = count > 128;
+            if (isEncodedRun)
+                count -= 128;
+            if (0 === count || ptr + count > ptr_end) {
+                return rgbe_error(rgbe_format_error, "bad scanline data");
+            }
+            if (isEncodedRun) {
+                // a (encoded) run of the same value
+                const byteValue = buffer[pos++];
+                for (let i = 0; i < count; i++) {
+                    scanline_buffer[ptr++] = byteValue;
+                }
+                //ptr += count;
+            }
+            else {
+                // a literal-run
+                scanline_buffer.set(buffer.subarray(pos, pos + count), ptr);
+                ptr += count;
+                pos += count;
+            }
+        }
+        // now convert data from buffer into rgba
+        // first red, then green, then blue, then exponent (alpha)
+        const l = scanline_width; //scanline_buffer.byteLength;
+        for (let i = 0; i < l; i++) {
+            let off = 0;
+            data_rgba[offset] = scanline_buffer[i + off];
+            off += scanline_width; //1;
+            data_rgba[offset + 1] = scanline_buffer[i + off];
+            off += scanline_width; //1;
+            data_rgba[offset + 2] = scanline_buffer[i + off];
+            off += scanline_width; //1;
+            data_rgba[offset + 3] = scanline_buffer[i + off];
+            offset += 4;
+        }
+        num_scanlines--;
+    }
+    return data_rgba;
+}
+function RGBEByteToRGBFloat(sourceArray, sourceOffset, destArray, destOffset) {
+    const e = sourceArray[sourceOffset + 3];
+    const scale = Math.pow(2.0, e - 128.0) / 255.0;
+    destArray[destOffset + 0] = sourceArray[sourceOffset + 0] * scale;
+    destArray[destOffset + 1] = sourceArray[sourceOffset + 1] * scale;
+    destArray[destOffset + 2] = sourceArray[sourceOffset + 2] * scale;
+    destArray[destOffset + 3] = 1;
+}
+function RGBEByteToRGBHalf(sourceArray, sourceOffset, destArray, destOffset) {
+    const e = sourceArray[sourceOffset + 3];
+    const scale = Math.pow(2.0, e - 128.0) / 255.0;
+    // clamping to 65504, the maximum representable value in float16
+    destArray[destOffset + 0] = Three.DataUtils.toHalfFloat(Math.min(sourceArray[sourceOffset + 0] * scale, 65504));
+    destArray[destOffset + 1] = Three.DataUtils.toHalfFloat(Math.min(sourceArray[sourceOffset + 1] * scale, 65504));
+    destArray[destOffset + 2] = Three.DataUtils.toHalfFloat(Math.min(sourceArray[sourceOffset + 2] * scale, 65504));
+    destArray[destOffset + 3] = Three.DataUtils.toHalfFloat(1);
+}
+class RGBELoader {
+    constructor() {
+        this.type = Three.FloatType;
+    }
+    load(context, resource) {
+        return __awaiter$1(this, void 0, void 0, function* () {
+            const buffer = yield doric.resourceLoader(context).load(resource);
+            const byteArray = new Buffer(buffer);
+            byteArray.pos = 0;
+            const rgbe_header_info = RGBE_ReadHeader(byteArray);
+            if (RGBE_RETURN_FAILURE !== rgbe_header_info &&
+                typeof rgbe_header_info === "object") {
+                const w = rgbe_header_info.width, h = rgbe_header_info.height, image_rgba_data = RGBE_ReadPixels_RLE(byteArray.subarray(byteArray.pos), w, h);
+                if (RGBE_RETURN_FAILURE !== image_rgba_data &&
+                    typeof image_rgba_data === "object") {
+                    let data;
+                    let numElements;
+                    switch (this.type) {
+                        case Three.FloatType:
+                            numElements = image_rgba_data.length / 4;
+                            const floatArray = new Float32Array(numElements * 4);
+                            for (let j = 0; j < numElements; j++) {
+                                RGBEByteToRGBFloat(image_rgba_data, j * 4, floatArray, j * 4);
+                            }
+                            data = floatArray;
+                            break;
+                        case Three.HalfFloatType:
+                            numElements = image_rgba_data.length / 4;
+                            const halfArray = new Uint16Array(numElements * 4);
+                            for (let j = 0; j < numElements; j++) {
+                                RGBEByteToRGBHalf(image_rgba_data, j * 4, halfArray, j * 4);
+                            }
+                            data = halfArray;
+                            break;
+                        default:
+                            throw new Error("THREE.RGBELoader: unsupported type: " + this.type);
+                    }
+                    const texture = new Three.DataTexture();
+                    texture.image = {
+                        width: w,
+                        height: h,
+                        data,
+                    };
+                    texture.wrapS = Three.ClampToEdgeWrapping;
+                    texture.wrapT = Three.ClampToEdgeWrapping;
+                    texture.anisotropy = 1;
+                    texture.type = this.type;
+                    texture.needsUpdate = true;
+                    texture.encoding = Three.LinearEncoding;
+                    texture.minFilter = Three.LinearFilter;
+                    texture.magFilter = Three.LinearFilter;
+                    texture.generateMipmaps = false;
+                    texture.flipY = true;
+                    return texture;
+                }
+            }
+            return;
+        });
+    }
+}
+
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+class TextureLoader {
+    load(context, resource) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const texture = new Three.DataTexture();
+            texture.format = Three.RGBAFormat;
+            const imageInfo = yield doric.imageDecoder(context).getImageInfo(resource);
+            const imagePixels = yield doric.imageDecoder(context).decodeToPixels(resource);
+            texture.image = {
+                data: new Uint8ClampedArray(imagePixels),
+                width: imageInfo.width,
+                height: imageInfo.height,
+            };
+            texture.needsUpdate = true;
+            return texture;
+        });
+    }
+}
+
 exports.GLTFLoader = GLTFLoader;
 exports.KTX2Loader = KTX2Loader;
 exports.MapControls = MapControls;
 exports.OrbitControls = OrbitControls;
+exports.RGBELoader = RGBELoader;
+exports.TextureLoader = TextureLoader;
 exports.loadGLTF = loadGLTF;
 //# sourceMappingURL=bundle_doric-three.js.map

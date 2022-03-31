@@ -4,8 +4,8 @@ import { GLTFContext, GLTFExtension } from "./extensions/GLTFExtensions";
 import * as GSpec from "./gltf";
 export declare function loadGLTF(context: BridgeContext, resource: Resource, asyncTexture?: boolean): Promise<GLTF>;
 export declare type GLTF = {
-    scene: THREE.Scene;
-    scenes: THREE.Scene[];
+    scene: THREE.Group;
+    scenes: THREE.Group[];
     animations: THREE.AnimationClip[];
     cameras: (THREE.PerspectiveCamera | THREE.OrthographicCamera)[];
     asset: GSpec.Asset;

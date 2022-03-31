@@ -19,7 +19,7 @@ import {
   TimingFunction,
 } from "doric";
 import THREE from "three";
-import { OrbitControls, ThreeView, GLTFLoader } from "doric-three";
+import { OrbitControls, ThreeView, GLTFLoader, RGBELoader } from "doric-three";
 import { vsync } from "dangle";
 import { DemoData } from "./data";
 
@@ -76,6 +76,7 @@ export class GLTFViewer extends Panel {
                 return;
               }
               const gltf = await loader.load(this.data.resource, true);
+              const model = gltf.scene;
               let camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
               if (gltf.cameras.length > 0) {
                 camera = gltf.cameras[0];
@@ -87,39 +88,41 @@ export class GLTFViewer extends Panel {
                   100
                 );
                 camera.position.set(0, 0, 5);
+                const size = new THREE.Vector3();
+                new THREE.Box3().setFromObject(model).getSize(size);
+                model.scale.set(2 / size.x, 2 / size.x, 2 / size.x);
               }
               const controls = new OrbitControls(camera, renderer.domElement);
-              controls.target.set(0, 0, 0);
               controls.update();
               controls.enablePan = false;
               controls.enableDamping = true;
-              controls.minDistance = 1;
-              controls.maxDistance = 100;
+              if (camera instanceof THREE.PerspectiveCamera) {
+                controls.minDistance = camera.near;
+                controls.maxDistance = camera.far;
+                camera.aspect =
+                  renderer.domElement.width / renderer.domElement.height;
+              } else {
+                controls.minDistance = 1;
+                controls.maxDistance = 100;
+              }
               controls.zoomSpeed = 0.5;
               const requestAnimationFrame = vsync(
                 this.context
               ).requestAnimationFrame;
-
               const clock = new THREE.Clock();
-              const scene = gltf.scene;
-              scene.traverse((obj) => {
-                loge(`obj:${obj.name},${obj.type},${obj.constructor.name}`);
-              });
-              const size = new THREE.Vector3();
-              new THREE.Box3().setFromObject(scene).getSize(size);
-              loge(`Size: x= ${size.x},y=${size.y},z = ${size.z}`);
-              scene.scale.set(2 / size.x, 2 / size.x, 2 / size.x);
-              loge("Scale:", 2 / size.x);
-              loge("variants", gltf.variants);
-              let mixer = new THREE.AnimationMixer(scene);
+              let mixer = new THREE.AnimationMixer(model);
               if (gltf.animations.length > 0) {
                 mixer.clipAction(gltf.animations[0]).play();
               }
+              const scene = new THREE.Scene();
+              scene.add(model);
               function animate() {
                 const delta = clock.getDelta();
                 mixer.update(delta);
                 controls.update();
+                threeRef.current.glCmds = [];
                 renderer.render(scene, camera);
+                loge(`command length:${threeRef.current.glCmds.length}`);
                 requestAnimationFrame(animate);
               }
               animate();
@@ -129,13 +132,15 @@ export class GLTFViewer extends Panel {
               }
               loadingIconRef.current.stopAnimating(this.context);
               loadingRef.current.hidden = true;
-              let count = 0;
-              threeRef.current.onClick = () => {
-                if (count >= (gltf.variants?.length || 0)) {
-                  count = 0;
-                }
-                gltf.variantChanger?.(count++);
-              };
+              const rgbeLoader = new RGBELoader();
+              const hdrRes = new AssetsResource("footprint_court.hdr");
+              const texture = await rgbeLoader.load(this.context, hdrRes);
+              if (!!texture) {
+                loge("texture is", typeof texture);
+                texture.mapping = THREE.EquirectangularReflectionMapping;
+                //scene.background = texture;
+                scene.environment = texture;
+              }
             } catch (e) {
               if (e instanceof Error) {
                 loge(e.message, e.stack);

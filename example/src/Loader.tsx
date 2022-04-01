@@ -69,11 +69,17 @@ export class LoaderPanel extends Panel {
           onInited={async (renderer) => {
             try {
               const scene = new THREE.Scene();
+              // const camera = new THREE.PerspectiveCamera(
+              //   50,
+              //   renderer.domElement.width / renderer.domElement.height,
+              //   1,
+              //   100
+              // );
               const camera = new THREE.PerspectiveCamera(
-                50,
+                70,
                 renderer.domElement.width / renderer.domElement.height,
-                1,
-                100
+                0.01,
+                2000
               );
               camera.position.set(0, 0, 5);
               {

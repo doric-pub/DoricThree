@@ -23,6 +23,7 @@ import {
 import { DemoData } from "./data";
 import { GLTFViewer } from "./GLTFViewer";
 import { LoaderPanel } from "./Loader";
+import { webgl_loader_gltf_fullscreen } from "./webgl_loader_gltf_fullscreen";
 import { webgl_loader_texture_ktx2 } from "./webgl_loader_texture_ktx2";
 
 interface ExamplesData {
@@ -102,6 +103,10 @@ class ListVM extends ViewModel<ExamplesData, ListVH> {
             onClick={() => {
               if (index == 0) {
                 navigator(this.context).push(webgl_loader_texture_ktx2, {
+                  extra: { index },
+                });
+              } else if (index == 1) {
+                navigator(this.context).push(webgl_loader_gltf_fullscreen, {
                   extra: { index },
                 });
               } else {

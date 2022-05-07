@@ -6,6 +6,9 @@ export const DemoData = [
     title: "ktx2",
   },
   {
+    title: "圆形展厅",
+  },
+  {
     title: "glTF",
     resource: new AssetsResource(
       `glTF-Sample-Models/2.0/StainedGlassLamp/glTF/StainedGlassLamp.gltf`
@@ -22,10 +25,6 @@ export const DemoData = [
     resource: new AssetsResource(
       `glTF-Sample-Models/2.0/StainedGlassLamp/glTF-KTX-BasisU/StainedGlassLamp.gltf`
     ),
-  },
-  {
-    title: "圆形展厅",
-    resource: new AssetsResource("圆形展厅.glb"),
   },
   {
     title: "Old Bicycle",

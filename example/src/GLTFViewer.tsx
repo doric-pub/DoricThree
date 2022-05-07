@@ -63,7 +63,7 @@ export class GLTFViewer extends Panel {
         </VLayout>
         <ThreeView
           ref={threeRef}
-          enableCmdRecord={true}
+          // enableCmdRecord={true}
           gestureRef={gestureRef}
           layoutConfig={layoutConfig().most()}
           transparentBackground={true}
@@ -120,9 +120,9 @@ export class GLTFViewer extends Panel {
                 const delta = clock.getDelta();
                 mixer.update(delta);
                 controls.update();
-                threeRef.current.glCmds = [];
+                // threeRef.current.glCmds = [];
                 renderer.render(scene, camera);
-                loge(`command length:${threeRef.current.glCmds.length}`);
+                // loge(`command length:${threeRef.current.glCmds.length}`);
                 requestAnimationFrame(animate);
               }
               animate();
